@@ -1,4 +1,11 @@
 #include "UDPSenderThread.h"
+#ifdef _WIN32
+#else
+	#include <cstring>
+	#define INVALID_SOCKET -1
+	#define SOCKET_ERROR -1
+	typedef int SOCKET;
+#endif
 
 UDPSenderThread::UDPSenderThread(SettingsReader::MainSettings settings)
 {
