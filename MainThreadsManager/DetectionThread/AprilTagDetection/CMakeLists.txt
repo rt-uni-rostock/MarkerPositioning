@@ -27,8 +27,8 @@ if(WIN32)
 
 	target_link_libraries(AprilTagDetection PRIVATE ${APRILTAG_LIB})
 else()
-	find_path(APRILTAG_INCLUDE_DIR apriltag.h PATHS /usr/local/include /usr/include)
-    find_library(APRILTAG_LIB apriltag PATHS /usr/local/lib /usr/lib)
+	find_path(APRILTAG_INCLUDE_DIR apriltag.h PATHS /usr/local/include/apriltag)
+    find_library(APRILTAG_LIB apriltag)
 	
 	if(NOT APRILTAG_INCLUDE_DIR OR NOT APRILTAG_LIB)
         message(FATAL_ERROR "Could not find AprilTag library")
