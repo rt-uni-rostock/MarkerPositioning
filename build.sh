@@ -22,6 +22,7 @@ fi
 # Build-Verzeichnis erstellen
 if [ ! -d "$BUILD_DIR" ]; then
     mkdir "$BUILD_DIR"
+    cp Settings.json build/Settings.json
 fi
 
 cd "$BUILD_DIR" || exit
