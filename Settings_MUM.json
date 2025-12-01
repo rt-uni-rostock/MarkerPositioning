@@ -1,0 +1,20 @@
+{
+    "cx": 808.8192915149390,                        // Camera principal point x-coordinate
+    "cy": 688.6305092916481,                        // Camera principal point y-coordinate
+    "d1": -0.337318670604793,                       // Distortion coefficient k1    
+    "d2": 0.158392310187415,                        // Distortion coefficient k2
+    "d3": 0.0,                                      // Distortion coefficient p1    
+    "d4": 0.0,                                      // Distortion coefficient p2
+    "d5": 0.0,                                      // Distortion coefficient k3            
+    "frameRate": 1.0,                               // Camera frame rate
+    "fx": 1268.335153885657,                        // Camera focal length in x
+    "fy": 1260.970977632810,                        // Camera focal length in y 
+    "quadDecimate": 4.0,                            // Tag detection decimation factor
+    "rtspUrl": "rtsp://127.0.0.1",                  // RTSP stream URL
+    "streamType": 0,                                // Stream type (0: RTSP, 1: LUCID)
+    "tagID": 17,                                    // AprilTag ID to detect
+    "tagSize": 0.1163,                              // AprilTag size in meters
+    "tagType": 0,                                   // Tag type (0: AprilTag, 1: ArUco)
+    "udpIp": "192.168.3.50",                        // UDP IP address for sending data
+    "udpPort": 5001                                 // UDP port for sending data        
+}
