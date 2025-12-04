@@ -1,6 +1,8 @@
 #include "ImageReceiverThread.h"
 
-#if defined(USE_RTSP)
+#if defined(USE_RTP)
+#include "RTPStream/RTPStream.h"
+#elif defined(USE_RTSP)
 #include "RTSPStream/RTSPStream.h"
 #elif defined(USE_LUCID)
 #include "LUCIDStream/LUCIDStream.h"
@@ -10,7 +12,9 @@ ImageReceiverThread::ImageReceiverThread(SettingsReader::MainSettings settings) 
 {
 	Settings = settings;
 
-#if defined(USE_RTSP)
+#if defined(USE_RTP)
+	stream = std::make_unique<RTPStream>(settings);
+#elif defined(USE_RTSP)
 	stream = std::make_unique<RTSPStream>(settings);
 #elif defined(USE_LUCID)
 	stream = std::make_unique<LUCIDStream>(settings);

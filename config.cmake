@@ -5,8 +5,8 @@
 
 
 # ---- Video Stream Selection ----
-# Allowed values: "RTSP", "LUCID"
-set(VIDEO_STREAM  "RTSP")
+# Allowed values: "RTSP", "RTP", "LUCID"
+set(VIDEO_STREAM  "RTP")
 
 # ---- Tag Detection Type ----
 # Allowed values: "ARUCO", "APRILTAG"

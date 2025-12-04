@@ -7,4 +7,6 @@ struct Pose {
 	double roll;
 	double pitch;
 	double yaw;
+	int tagId;
+	double poseError;
 };

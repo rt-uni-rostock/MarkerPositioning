@@ -4,29 +4,33 @@
 
 using json = nlohmann::json;
 
+// constructor, tries to load settings from file, if fails creates default settings file
 SettingsReader::SettingsReader(const std::string& filename)
 {
 	try {
 		settings = SettingsReader::loadSettings(filename);
 	}
 	catch (const std::exception& e) {
-		// create file with default settings
 		std::cerr << "Creating default settings" << std::endl;
 		SettingsReader::writeDefaultSettings(filename);
 	}
 }
 
+// load settings from file
 SettingsReader::MainSettings SettingsReader::loadSettings(const std::string& filename)
 {
+	// try to open file
 	std::ifstream f(filename);
 	if (!f.is_open()) {
 		std::cerr << "Error: Could not open file " << filename << std::endl;
 		throw std::runtime_error("Could not open config file");
 	}
 
+	// parse json
 	json j;
 	f >> j;
 
+	// read settings
 	SettingsReader::MainSettings cfg;
 	cfg.streamType = j.value("streamType", 0);
 	cfg.tagType = j.value("tagType", 0);
@@ -46,11 +50,14 @@ SettingsReader::MainSettings SettingsReader::loadSettings(const std::string& fil
 	cfg.udpIp = j.value("udpIp", "192.168.3.50");
 	cfg.udpPort = j.value("udpPort", 5001);
 	cfg.frameRate = j.value("frameRate", 30.0);
+
 	return cfg;
 }
 
+// write default settings to file
 void SettingsReader::writeDefaultSettings(const std::string& filename)
 {
+	// define default settings
 	SettingsReader::MainSettings defaultSettings;
 	defaultSettings.streamType = 0;
 	defaultSettings.tagType = 0;
@@ -71,7 +78,10 @@ void SettingsReader::writeDefaultSettings(const std::string& filename)
 	defaultSettings.udpPort = 5001;
 	defaultSettings.frameRate = 30.0;
 
+	// write to json
 	json j;
+	j["streamType"] = defaultSettings.streamType;
+	j["tagType"] = defaultSettings.tagType;
 	j["tagSize"] = defaultSettings.tagSize;
 	j["tagID"] = defaultSettings.tagID;
 	j["fx"] = defaultSettings.fx;
@@ -88,6 +98,7 @@ void SettingsReader::writeDefaultSettings(const std::string& filename)
 	j["udpIp"] = defaultSettings.udpIp;
 	j["udpPort"] = defaultSettings.udpPort;
 	j["frameRate"] = defaultSettings.frameRate;
+
 	std::ofstream o(filename);
 	if (!o.is_open()) {
 		std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;

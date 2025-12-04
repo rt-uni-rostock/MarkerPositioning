@@ -4,8 +4,7 @@ add_library(ImageReceiverThread
 	ImageReceiverThread.cpp
 	ImageReceiverThread.h
 	FrameData.h
-    "IVideoStream.h"
-)
+    IVideoStream.h)
 
 target_include_directories(ImageReceiverThread PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
@@ -21,6 +20,15 @@ if(VIDEO_STREAM STREQUAL "RTSP")
     target_link_libraries(ImageReceiverThread
         PUBLIC
             RTSPStream
+    )
+
+elseif(VIDEO_STREAM STREQUAL "RTP")
+    message(STATUS "ImageReceiverThread: Using RTPStream")
+    add_subdirectory(RTPStream)
+    target_compile_definitions(ImageReceiverThread PRIVATE USE_RTP)
+    target_link_libraries(ImageReceiverThread
+        PUBLIC
+            RTPStream
     )
 
 elseif(VIDEO_STREAM STREQUAL "LUCID")

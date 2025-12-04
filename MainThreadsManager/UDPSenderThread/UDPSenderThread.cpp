@@ -1,4 +1,5 @@
 #include "UDPSenderThread.h"
+#include "PosePacket.h"
 #ifdef _WIN32
 #else
 	#include <cstring>
@@ -46,18 +47,36 @@ void UDPSenderThread::startSending(Pose pose)
 
 void UDPSenderThread::SendPoseThread(std::stop_token stopToken)
 {
+    PosePacket posePacket;
+    posePacket.m1X = this->poseToSend.x;
+    posePacket.m1Y = this->poseToSend.y;
+    posePacket.m1Z = this->poseToSend.z;
+	posePacket.m1Roll = this->poseToSend.roll;
+	posePacket.m1Pitch = this->poseToSend.pitch;
+	posePacket.m1Yaw = this->poseToSend.yaw;
+	posePacket.m1TagId = this->poseToSend.tagId; // Example tag ID
+	posePacket.m1PoseErr = this->poseToSend.poseError; // Example pose error
+    posePacket.m2X = 0.0;
+    posePacket.m2Y = 0;
+    posePacket.m2Z = 0;
+    posePacket.m2Roll = 0;
+    posePacket.m2Pitch = 0;
+    posePacket.m2Yaw = 0;
+    posePacket.m2TagId = 0; // Example tag ID
+    posePacket.m2PoseErr = 0.0; // Example pose error
+    posePacket.m3X = 0;
+    posePacket.m3Y = 0;
+    posePacket.m3Z = 0;
+    posePacket.m3Roll = 0;
+    posePacket.m3Pitch = 0;
+    posePacket.m3Yaw = 0;
+    posePacket.m3TagId = 0; // Example tag ID
+    posePacket.m3PoseErr = 0.0; // Example pose error
+
     std::cout << "Sending pose via UDP...\n";
 
-    char buf[6 * sizeof(double)];
-    memcpy(buf, &poseToSend.x, sizeof(double));
-    memcpy(buf + 1 * sizeof(double), &poseToSend.y, sizeof(double));
-    memcpy(buf + 2 * sizeof(double), &poseToSend.z, sizeof(double));
-    memcpy(buf + 3 * sizeof(double), &poseToSend.roll, sizeof(double));
-    memcpy(buf + 4 * sizeof(double), &poseToSend.pitch, sizeof(double));
-    memcpy(buf + 5 * sizeof(double), &poseToSend.yaw, sizeof(double));
-
-    int sent = sendto(sock, buf, sizeof(buf), 0, (sockaddr*)&dest_addr, sizeof(dest_addr));
-
+    int sent = sendto(sock, reinterpret_cast<const char*>(&posePacket), sizeof(posePacket), 0, (sockaddr*)&dest_addr, sizeof(dest_addr));
+        
     if (sent == SOCKET_ERROR) {
         std::cerr << "sendto failed\n";
     }

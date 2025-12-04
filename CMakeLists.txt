@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Windows: binde lokale Bibliotheken ein
 if (WIN32)
-	set(OpenCV_DIR "C:/Code/opencv_build/install/x64/vc17/lib/")
+	set(OpenCV_DIR "C:/Code/opencv_build2/build/install/x64/vc17/lib/")
 endif()
 
 find_package(OpenCV REQUIRED)
@@ -32,7 +32,7 @@ endif()
 message(STATUS "Video Stream: ${VIDEO_STREAM}")
 message(STATUS "Tag Type:     ${TAG_TYPE}")
 
-set(VALID_VIDEO_STREAMS RTSP LUCID)
+set(VALID_VIDEO_STREAMS RTSP RTP LUCID)
 set(VALID_TAG_TYPES APRILTAG ARUCO)
 
 list(FIND VALID_VIDEO_STREAMS ${VIDEO_STREAM} VIDEO_STREAM_INDEX)
@@ -60,7 +60,8 @@ add_executable (MarkerPositioning
 target_link_libraries(MarkerPositioning PRIVATE 
 	MainThreadsManager
 	SettingsReader
-	${OpenCV_LIBS}
+	$<$<CONFIG:Debug>:${OpenCV_LIBS_DEBUG}>
+    $<$<CONFIG:Release>:${OpenCV_LIBS}>
 )
 
 target_include_directories(MarkerPositioning 

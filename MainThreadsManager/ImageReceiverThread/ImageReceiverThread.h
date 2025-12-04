@@ -1,10 +1,10 @@
 #pragma once
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 #include <chrono>
 #include <mutex>
 #include <thread>
 #include "../../SettingsReader/SettingsReader.h"
-#include "RTSPStream/RTSPStream.h"
+#include "RTPStream/RTPStream.h"
 #include "FrameData.h"
 #include "IVideoStream.h"
 
