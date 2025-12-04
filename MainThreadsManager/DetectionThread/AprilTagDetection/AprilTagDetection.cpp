@@ -101,5 +101,5 @@ Pose AprilTagDetection::selectDetectionResult(zarray_t* detections, int required
 	double yaw = atan2(Rmat[1][0], Rmat[0][0]);
 
 	// gebe die berechnete Pose zurück
-	return Pose{ x,y,z, roll, pitch, yaw, required_tag_id, 0 };
+	return Pose{ x,y,z, roll, pitch, yaw, required_tag_id, selectedTag->pose_err };
 }
