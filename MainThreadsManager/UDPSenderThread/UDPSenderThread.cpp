@@ -47,13 +47,22 @@ void UDPSenderThread::startSending(Pose pose)
 
 void UDPSenderThread::SendPoseThread(std::stop_token stopToken)
 {
+	// kamera coordinates == dock coordinates plus translation
+	// marker coordinates = kamera coordinates rotated by 180 degrees around z axis
+	double x_dock = -this->poseToSend.x;
+	double y_dock = -this->poseToSend.y;
+	double z_dock = this->poseToSend.z; // -8.75 cm offset in z direction
+	double roll_dock = -this->poseToSend.roll;
+	double pitch_dock = -this->poseToSend.pitch;
+	double yaw_dock = this->poseToSend.yaw + 3.14159265358979323846; // add 180 degrees in radians
+
     PosePacket posePacket;
-    posePacket.m1X = this->poseToSend.x;
-    posePacket.m1Y = this->poseToSend.y;
-    posePacket.m1Z = this->poseToSend.z;
-	posePacket.m1Roll = this->poseToSend.roll;
-	posePacket.m1Pitch = this->poseToSend.pitch;
-	posePacket.m1Yaw = this->poseToSend.yaw;
+    posePacket.m1X = x_dock;
+    posePacket.m1Y = y_dock;
+    posePacket.m1Z = z_dock;
+	posePacket.m1Roll = roll_dock;
+	posePacket.m1Pitch = pitch_dock;
+	posePacket.m1Yaw = yaw_dock;
 	posePacket.m1TagId = this->poseToSend.tagId; // Example tag ID
 	posePacket.m1PoseErr = this->poseToSend.poseError; // Example pose error
     posePacket.m2X = 0.0;
