@@ -22,7 +22,7 @@ The library outputs the 6-DoF pose of each detected marker relative to the camer
 To install the MarkerPositioning library, follow these steps:
 1. Clone the repository:
    ```bash
-   git clone https://github.com/rt-uni-rostock/MarkerPositioning.git```
+   git clone https://github.com/rt-uni-rostock/MarkerPositioning.git
 2. a) Linux system: run the installation script build.sh
 2. b) Windows system: under /out/build/release run MarkerPositioning.exe
 

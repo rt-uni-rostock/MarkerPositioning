@@ -4,7 +4,7 @@ RTSPStream::RTSPStream(SettingsReader::MainSettings& settings) : Settings(settin
 {
 	std::cout << "Opening RTSP stream at " << Settings.rtspUrl << " ..." << std::endl;
 
-	cap.open(Settings.rtspUrl, cv::CAP_FFMPEG);
+	cap.open(Settings.rtspUrl); //, cv::CAP_FFMPEG
 	if (!cap.isOpened())
 	{
 		std::cerr << "Error: Could not open RTSP stream at " << Settings.rtspUrl << std::endl;
