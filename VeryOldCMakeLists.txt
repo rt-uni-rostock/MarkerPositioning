@@ -1,0 +1,161 @@
+# CMakeList.txt: CMake-Projekt für "MarkerPositioning". Schließen Sie die Quelle ein, und definieren Sie
+# projektspezifische Logik hier.
+#
+cmake_minimum_required (VERSION 3.16)
+
+# Aktivieren Sie Hot Reload für MSVC-Compiler, sofern unterstützt.
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
+project ("MarkerPositioning" LANGUAGES C CXX)
+
+# MSVC soll alle Dateien als UTF-8 interpretieren
+add_compile_options(/utf-8)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Windows: binde lokale Bibliotheken ein
+if (WIN32)
+	set(OpenCV_DIR "C:/Code/opencv_build2/build/install/x64/vc17/lib/")
+endif()
+
+find_package(OpenCV REQUIRED)
+
+# load configuration file and validate settings
+if(EXISTS "${CMAKE_SOURCE_DIR}/config.cmake")
+	include(${CMAKE_SOURCE_DIR}/config.cmake)
+else()
+	message(STATUS "config.cmake not found - using defaults")
+endif()
+
+
+# =============================================================
+# Helper
+# =============================================================
+
+add_library(Helper
+	Helper/Logger.cpp
+)
+
+target_include_directories(Helper PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/Helper
+)
+
+# =============================================================
+# Preprocessing
+# =============================================================
+
+add_library(Preprocessing
+	DetectionPipeline/01_Preprocessing/Preprocessing.cpp
+)
+
+target_include_directories(Preprocessing PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/DetectionPipeline/01_Preprocessing
+)
+
+# =============================================================
+# Detection
+# =============================================================
+
+add_library(Detection
+	DetectionPipeline/02_Detection/Detection.cpp
+	DetectionPipeline/02_Detection/AprilTagDetection/AprilTagDetection.cpp
+	DetectionPipeline/02_Detection/ArUcoDetection/ArUcoDetection.cpp
+)
+
+target_include_directories(Detection PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/DetectionPipeline/02_Detection
+    ${CMAKE_CURRENT_SOURCE_DIR}/DetectionPipeline/02_Detection/AprilTagDetection
+    ${CMAKE_CURRENT_SOURCE_DIR}/DetectionPipeline/02_Detection/ArUcoDetection
+)
+
+# =============================================================
+# PostProcessing
+# =============================================================
+
+add_library(PostProcessing
+	DetectionPipeline/03_PostProcessing/PostProcessing.cpp
+)
+
+target_include_directories(PostProcessing PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/DetectionPipeline/03_PostProcessing
+)
+
+# =============================================================
+# ImageSource
+# =============================================================
+
+add_library(IO
+    IO/ImageSource/ImageSourceFactory.cpp
+    IO/ImageSource/LiveImageSource/LiveImageSource.cpp
+    IO/ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.cpp
+    IO/ImageSource/LiveImageSource/RTPStream/RTPStream.cpp
+    IO/ImageSource/LiveImageSource/RTSPStream/RTSPStream.cpp
+    IO/ImageSource/StaticImageSource/StaticImageSource.cpp
+)
+
+target_include_directories(IO PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/ImageSource
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/ImageSource/LiveImageSource
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/ImageSource/LiveImageSource/LUCIDStream
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/ImageSource/LiveImageSource/RTPStream
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/ImageSource/LiveImageSource/RTSPStream
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/ImageSource/StaticImageSource
+)
+
+target_link_libraries(IO PUBLIC
+    ${OpenCV_LIBS}
+)
+
+# =============================================================
+# Sink
+# =============================================================
+
+add_library(Sink
+    IO/Sink/Sink.cpp
+    IO/Sink/ResultLogger.cpp
+    IO/Sink/UdpPublisher.cpp
+)
+
+target_include_directories(Sink PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/Sink
+)
+
+# =============================================================
+# Supervisor
+# =============================================================
+
+add_library(Supervisor
+    Supervisor/LiveSupervisorMode.cpp
+    Supervisor/StaticSupervisorMode.cpp
+    Supervisor/LiveWorker/Worker.cpp
+)
+
+target_include_directories(Supervisor PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Supervisor
+    ${CMAKE_CURRENT_SOURCE_DIR}/Supervisor/LiveWorker
+)
+
+# =============================================================
+# Settings
+# =============================================================
+
+add_library(SettingsReader
+    SettingsReader/SettingsReader.cpp
+)
+
+target_include_directories(SettingsReader PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/SettingsReader
+)
+
+# =============================================================
+# Hauptprogramm
+# =============================================================
+
+add_executable(MarkerPositioning
+    MarkerPositioning.cpp
+    DetectionPipeline/DetectionPipeline.cpp
+)

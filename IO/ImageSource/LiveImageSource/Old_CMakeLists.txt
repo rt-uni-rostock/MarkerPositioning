@@ -1,0 +1,54 @@
+include(${CMAKE_SOURCE_DIR}/config.cmake)
+
+add_library(LiveImageSource
+	LiveImageSource.cpp
+	LiveImageSource.h
+)
+
+target_include_directories(LiveImageSource PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# ---- Stream selection ----
+if(VIDEO_STREAM STREQUAL "RTSP")
+    message(STATUS "LiveImageSource: Using RTSPStream")
+    add_subdirectory(RTSPStream)
+
+    target_compile_definitions(LiveImageSource PRIVATE USE_RTSP)
+
+    target_link_libraries(LiveImageSource
+        PUBLIC
+            RTSPStream
+    )
+
+elseif(VIDEO_STREAM STREQUAL "RTP")
+    message(STATUS "LiveImageSource: Using RTPStream")
+    add_subdirectory(RTPStream)
+    target_compile_definitions(LiveImageSource PRIVATE USE_RTP)
+    target_link_libraries(LiveImageSource
+        PUBLIC
+            RTPStream
+    )
+
+elseif(VIDEO_STREAM STREQUAL "LUCID")
+    message(STATUS "LiveImageSource: Using LUCIDStream")
+    add_subdirectory(LUCIDStream)
+
+    target_compile_definitions(LiveImageSource PRIVATE USE_LUCID)
+
+    target_link_libraries(LiveImageSource
+        PUBLIC
+            LUCIDStream
+    )
+else()
+    message(FATAL_ERROR "Invalid VIDEO_STREAM: ${VIDEO_STREAM}")
+endif()
+
+target_link_libraries(LiveImageSource PRIVATE
+	SettingsReader
+    ImageSource
+)
+
+target_compile_definitions(LiveImageSource
+    PUBLIC SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE
+)
