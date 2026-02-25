@@ -3,11 +3,11 @@
 #include "SourceModeEnum.h"
 #include "StreamTypeEnum.h"
 
-#include "LiveImageSource.h"
-#include "StaticImageSource.h"
-#include "RTSPStream.h"
-#include "RTPStream.h"
-#include "LUCIDStream.h"
+#include "ImageSource/LiveImageSource/LiveImageSource.h"
+#include "ImageSource/StaticImageSource/StaticImageSource.h"
+#include "ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.h"
+#include "ImageSource/LiveImageSource/RTPStream/RTPStream.h"
+#include "ImageSource/LiveImageSource/RTSPStream/RTSPStream.h"
 
 #include "Logger.h"
 

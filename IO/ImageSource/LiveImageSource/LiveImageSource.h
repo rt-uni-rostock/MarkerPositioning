@@ -4,7 +4,7 @@
 #include <atomic>
 #include <mutex>
 
-#include "IImageSource.h"
+#include "ImageSource/IImageSource.h"
 #include "IVideoStream.h"
 
 // The Supervisor class manages the whole detection pipeline. All pipeline steps are configured and if needed threads created.

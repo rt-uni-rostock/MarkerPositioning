@@ -1,16 +1,16 @@
 #include "AprilTagDetection.h"
 
-AprilTagDetection::AprilTagDetection(MainSettings settings) {
+AprilTagDetection::AprilTagDetection(DetectionConfig config) {
 	tf = tag16h5_create();
 	td = apriltag_detector_create();
 	apriltag_detector_add_family(td, tf);
-	td->quad_decimate = settings.quadDecimate;
+	td->quad_decimate = config.quadDecimate;
 
-	info.tagsize = settings.tagSize; // Taggröße in Metern
-	info.fx = settings.fx; // Brennweite in Pixeln (x)
-	info.fy = settings.fy; // Brennweite in Pixeln (y)
-	info.cx = settings.cx; // Hauptpunkt x in Pixeln
-	info.cy = settings.cy; // Hauptpunkt y in Pixeln
+	info.tagsize = config.tagSize; // Taggröße in Metern
+	info.fx = config.fx; // Brennweite in Pixeln (x)
+	info.fy = config.fy; // Brennweite in Pixeln (y)
+	info.cx = config.cx; // Hauptpunkt x in Pixeln
+	info.cy = config.cy; // Hauptpunkt y in Pixeln
 
 	// log calibration parameters
 	std::cout << "[AprilTagDetection] Initialized with calibration parameters:\n";
@@ -19,7 +19,7 @@ AprilTagDetection::AprilTagDetection(MainSettings settings) {
 	std::cout << "  cx: " << info.cx << "\n";
 	std::cout << "  cy: " << info.cy << "\n";
 
-	tagID = settings.tagID;
+	tagID = config.tagID;
 }
 
 AprilTagDetection::~AprilTagDetection() {

@@ -1,7 +1,7 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <chrono>
-#include "IVideoStream.h"
+#include "ImageSource/LiveImageSource/IVideoStream.h"
 
 class ImageFrame;
 struct ImageSourceConfig;

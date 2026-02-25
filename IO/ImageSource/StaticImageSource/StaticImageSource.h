@@ -2,7 +2,7 @@
 
 
 
-#include "IImageSource.h"
+#include "ImageSource/IImageSource.h"
 
 // The Supervisor class manages the whole detection pipeline. All pipeline steps are configured and if needed threads created.
 class StaticImageSource : public IImageSource

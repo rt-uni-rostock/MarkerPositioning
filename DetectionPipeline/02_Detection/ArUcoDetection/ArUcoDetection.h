@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IDetection.h"
+#include "02_Detection/IDetection.h"
 
 class ArUcoDetection : public IDetection {
 public:

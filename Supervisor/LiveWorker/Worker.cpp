@@ -1,5 +1,5 @@
 #include "Worker.h"
-#include "IImageSource.h"
+#include "ImageSource/IImageSource.h"
 #include "DetectionPipeline.h"
 #include "DetectionResult.h"
 

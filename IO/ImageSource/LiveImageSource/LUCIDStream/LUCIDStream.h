@@ -1,7 +1,7 @@
 #pragma once
 //#include "ArenaApi.h"
 //#include "../ImageReceiverThread.h"
-#include "IVideoStream.h"
+#include "ImageSource/LiveImageSource/IVideoStream.h"
 
 class ImageFrame;
 struct ImageSourceConfig;

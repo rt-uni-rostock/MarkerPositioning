@@ -1,6 +1,6 @@
 #include "LUCIDStream.h"
 
-#include "ImageFrame.h"
+#include "ImageSource/ImageFrame.h"
 
 LUCIDStream::LUCIDStream(const ImageSourceConfig& settings) : settings_(settings) {
 	//pSystem = Arena::OpenSystem();

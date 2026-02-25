@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ImageFrame.h"
+#include "ImageSource/ImageFrame.h"
 
 class IVideoStream
 {

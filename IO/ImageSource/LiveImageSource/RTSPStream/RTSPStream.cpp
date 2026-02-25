@@ -1,8 +1,8 @@
 #include "RTSPStream.h"
 
-#include "ImageFrame.h"
+#include "ImageSource/ImageFrame.h"
 #include "Logger.h"
-#include "ImageSourceConfig.h"
+#include "ImageSource/ImageSourceConfig.h"
 
 RTSPStream::RTSPStream(const ImageSourceConfig& settings) : settings_(settings)
 {

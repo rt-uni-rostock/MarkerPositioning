@@ -1,17 +1,17 @@
 #pragma once
 
-#include "IDetection.h"
+#include "02_Detection/IDetection.h"
 #include "apriltag.h"
 #include "apriltag_pose.h"
 #include "tag16h5.h"
-#include "MainSettings.h"
-#include "Pose.h"
-#include "AprilTagWithPose.h"
+#include "02_Detection/DetectionConfig.h"
+#include "02_Detection/Pose.h"
+#include "02_Detection/AprilTagDetection/AprilTagWithPose.h"
 #include <opencv2/opencv.hpp>
 
 class AprilTagDetection : public IDetection {
 public:
-	AprilTagDetection(MainSettings settings);
+	AprilTagDetection(DetectionConfig config);
 	~AprilTagDetection();
 
 	Pose detect(const cv::Mat& image);

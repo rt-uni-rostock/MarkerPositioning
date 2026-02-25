@@ -1,8 +1,14 @@
 #include "StaticSupervisorMode.h"
-#include "ImageSourceFactory.h"
+#include "ImageSource/ImageSourceFactory.h"
 #include "DetectionPipeline.h"
-#include "Sink.h"
+#include "Sink/Sink.h"
 #include "MainSettings.h"
+
+//#include "StaticSupervisorMode.h"
+//#include "ImageSourceFactory.h"
+//#include "DetectionPipeline.h"
+//#include "Sink.h"
+//#include "MainSettings.h"
 
 //#include "ImageSourceFactory.h"
 //#include "DetectionPipeline/DetectionPipeline.h"

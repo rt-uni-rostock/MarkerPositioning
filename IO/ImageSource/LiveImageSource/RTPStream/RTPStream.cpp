@@ -1,7 +1,7 @@
 #include "RTPStream.h"
 #include "Logger.h"
-#include "ImageFrame.h"
-#include "ImageSourceConfig.h"
+#include "ImageSource/ImageFrame.h"
+#include "ImageSource/ImageSourceConfig.h"
 
 RTPStream::RTPStream(const ImageSourceConfig& settings) : settings_(settings)
 {

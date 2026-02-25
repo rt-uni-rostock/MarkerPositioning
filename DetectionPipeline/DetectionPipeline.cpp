@@ -1,7 +1,7 @@
 #include "DetectionPipeline.h"
 
 #include "DetectionResult.h"
-#include "ImageFrame.h"
+#include "ImageSource/ImageFrame.h"
 
 
 // Constructor: 
