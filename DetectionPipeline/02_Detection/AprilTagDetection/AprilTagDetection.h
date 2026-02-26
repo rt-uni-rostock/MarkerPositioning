@@ -4,23 +4,27 @@
 #include "apriltag.h"
 #include "apriltag_pose.h"
 #include "tag16h5.h"
-#include "02_Detection/DetectionConfig.h"
+#include "DetectionPipelineConfig.h"
 #include "02_Detection/Pose.h"
 #include "02_Detection/AprilTagDetection/AprilTagWithPose.h"
 #include <opencv2/opencv.hpp>
 
 class AprilTagDetection : public IDetection {
 public:
-	AprilTagDetection(DetectionConfig config);
+	explicit AprilTagDetection(const DetectionPipelineConfig& config);
+	
 	~AprilTagDetection();
 
-	Pose detect(const cv::Mat& image);
+	DetectionResult process(const ImageFrame& frame) override;
 
 	int tagID;
 
 private:
+	DetectionPipelineConfig config_;
+
 	apriltag_family_t* tf;
 	apriltag_detector_t* td;
 	apriltag_detection_info_t info;
+	Pose detect(const cv::Mat& image);
 	Pose selectDetectionResult(zarray_t* detections, int required_tag_id, apriltag_detection_info_t info);
 };

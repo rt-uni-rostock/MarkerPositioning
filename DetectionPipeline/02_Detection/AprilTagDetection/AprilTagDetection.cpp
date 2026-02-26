@@ -1,9 +1,12 @@
 #include "AprilTagDetection.h"
+#include "ImageSource/ImageFrame.h"
+#include "DetectionResult.h"
 
-AprilTagDetection::AprilTagDetection(DetectionConfig config) {
+AprilTagDetection::AprilTagDetection(const DetectionPipelineConfig& config) : config_(config) {
 	tf = tag16h5_create();
 	td = apriltag_detector_create();
 	apriltag_detector_add_family(td, tf);
+
 	td->quad_decimate = config.quadDecimate;
 
 	info.tagsize = config.tagSize; // Taggröße in Metern
@@ -26,6 +29,31 @@ AprilTagDetection::~AprilTagDetection() {
 	apriltag_detector_remove_family(td, tf);
 	tag16h5_destroy(tf);
 	apriltag_detector_destroy(td);
+}
+
+DetectionResult AprilTagDetection::process(const ImageFrame& frame) {
+	DetectionResult result;
+
+	if (frame.image.empty()) {
+		return result;
+	}
+
+	cv::Mat gray;
+
+	if (frame.image.channels() == 3) {
+		cv::cvtColor(frame.image, gray, cv::COLOR_BGR2GRAY);
+	}
+	else
+		gray = frame.image;
+
+	Pose pose = detect(gray);
+
+	result.pose = pose;
+
+	result.frameId = frame.frameId;
+	result.timestamp = frame.timestamp;
+	
+	return result;
 }
 
 Pose AprilTagDetection::detect(const cv::Mat& gray) {

@@ -3,23 +3,42 @@
 #include "DetectionResult.h"
 #include "ImageSource/ImageFrame.h"
 
+#include "01_Preprocessing/Preprocessing.h"
+#include "02_Detection/Detection.h"
+#include "03_PostProcessing/PostProcessing.h"
+
+#include "Logger.h"
 
 // Constructor: 
-DetectionPipeline::DetectionPipeline(const DetectionPipelineConfig& config)
+DetectionPipeline::DetectionPipeline(const DetectionPipelineConfig& config) : config_(config)
 {
-
+	LOG_TRACE("Initializing DetectionPipeline with config.");
+	preprocessor_ = std::make_unique<Preprocessing>(config_);
+	detector_ = std::make_unique<Detection>(config_);
+	postprocessor_ = std::make_unique<PostProcessing>(config_);
 }
 
 DetectionPipeline::~DetectionPipeline()
 {
+	LOG_TRACE("Destroying DetecitonPipeline.");
 	// Destructor implementation
 }
 
-DetectionResult DetectionPipeline::process(const ImageFrame& frame)
+DetectionResult DetectionPipeline::process(ImageFrame& frame)
 {
-	DetectionResult result;
-	result.success = false;
-	result.markerId = -1;
-	result.message = "Detection not implemented yet";
-	return result;
+	// Preprocesing step
+	LOG_INFO("PreProcessing frame with ID: {}", frame.frameId);
+	ImageFrame preprocessedFrame = preprocessor_->process(frame);
+
+	// Detection step
+
+	LOG_INFO("Detecting in frame with ID: {}", frame.frameId);
+	DetectionResult rawResult = detector_->process(preprocessedFrame);
+
+	// Postprocessing step
+	LOG_INFO("PostProcessing detection result for frame with ID: {}", frame.frameId);
+	DetectionResult finalResult = postprocessor_->process(rawResult);
+
+	LOG_TRACE("Finished processing frame with ID: {}", frame.frameId);
+	return finalResult;
 }

@@ -1,8 +1,8 @@
 #include "PostProcessing.h"
-
+#include "DetectionResult.h"
 
 // Constructor: 
-PostProcessing::PostProcessing()
+PostProcessing::PostProcessing(const DetectionPipelineConfig& config) : config_(config)
 {
 
 }
@@ -10,4 +10,10 @@ PostProcessing::PostProcessing()
 PostProcessing::~PostProcessing()
 {
 	// Destructor implementation
+}
+
+DetectionResult PostProcessing::process(const DetectionResult& detectionResult)
+{
+	// Post-processing implementation
+	return detectionResult;
 }

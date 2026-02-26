@@ -92,6 +92,13 @@ target_link_libraries(Helper PUBLIC
 )
 
 # =============================================================
+# Global Logging Level
+# =============================================================
+
+set(GLOBAL_LOG_LEVEL SPDLOG_LEVEL_TRACE)
+add_compile_definitions(SPDLOG_ACTIVE_LEVEL=${GLOBAL_LOG_LEVEL})
+
+# =============================================================
 # Json
 # =============================================================
 
@@ -123,8 +130,9 @@ add_library(DetectionPipeline
     DetectionPipeline/03_PostProcessing/PostProcessing.cpp
 )
 
-target_include_directories(DetectionPipeline PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/DetectionPipeline
+target_include_directories(DetectionPipeline 
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/DetectionPipeline
 )
 
 target_link_libraries(DetectionPipeline 
@@ -149,8 +157,9 @@ add_library(ImageSource
     IO/ImageSource/StaticImageSource/StaticImageSource.cpp
 )
 
-target_include_directories(ImageSource PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/IO
+target_include_directories(ImageSource 
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/IO
 )
 
 target_link_libraries(ImageSource PUBLIC
@@ -200,7 +209,6 @@ target_link_libraries(Supervisor
         SettingsReader
         Helper
         CoreTypes
-    PRIVATE
         DetectionPipeline
 )
 
@@ -232,5 +240,4 @@ add_executable(MarkerPositioning
 
 target_link_libraries(MarkerPositioning PRIVATE
     Supervisor
-    DetectionPipeline
 )

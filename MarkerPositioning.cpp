@@ -32,26 +32,24 @@ using namespace std;
 // indicates whether a shutdown signal was requested (e.g. Ctrl+C)
 std::atomic<bool> shutdownRequested(false);
 
-// condition variable and mutex for waiting for shutdown signal
-static std::mutex shutdownMutex;
-static std::condition_variable shutdownCV;
-
 // signal handler for shutdown signals (e.g. SIGINT)
 // SIGINT: Interrupt from keyboard (e.g. Ctrl+C)
 // SIGTERM: Termination signal from system (e.g. kill command)
-void signalHandler(int signal) {
-    if (signal == SIGINT || signal == SIGTERM) {
+void signalHandler(int signal)
+{
+    if (signal == SIGINT || signal == SIGTERM)
+    {
         shutdownRequested.store(true);
-
-		// Notify the main thread to proceed with shutdown
-        shutdownCV.notify_one();
     }
 }
 
 // Function to wait for a shutdown signal (e.g. Ctrl+C)
-void waitForShutdownSignal() {
-    std::unique_lock<std::mutex> lock(shutdownMutex);
-    shutdownCV.wait(lock, [] { return shutdownRequested.load(); });
+void waitForShutdownSignal()
+{
+    while (!shutdownRequested.load())
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 
@@ -59,6 +57,9 @@ void waitForShutdownSignal() {
 
 int main()
 {
+
+    std::signal(SIGINT, signalHandler);
+    std::signal(SIGTERM, signalHandler);
 
     Logger::init();
 
@@ -147,16 +148,16 @@ int main()
 		LOG_INFO("Supervisor successfully initialized.");
 		LOG_INFO("Starting Supervisor...");
 
-        //supervisor.start();
+        supervisor.start();
 
 		LOG_INFO("Supervisor started successfully.");
 		LOG_INFO("Application is running. Press Ctrl+C to shut down...");
         
-        //waitForShutdownSignal();
+        waitForShutdownSignal();
 
 		LOG_INFO("Shutdown signal received, stopping Supervisor...");
 
-        //supervisor.stop();
+        supervisor.stop();
 
 		LOG_INFO("Supervisor stopped successfully.");
 
