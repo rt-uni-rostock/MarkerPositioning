@@ -3,6 +3,9 @@
 #include "ImageSource/ImageFrame.h"
 #include "ImageSource/ImageSourceConfig.h"
 
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/fmt/chrono.h>
+
 RTPStream::RTPStream(const ImageSourceConfig& settings) : settings_(settings)
 {
 	LOG_TRACE("RTPStream created with provided settings: rtspUrl={}",
@@ -65,7 +68,7 @@ ImageFrame RTPStream::getFrame()
 	}
 
 	auto now = std::chrono::system_clock::now();
-	auto formatted = std::format("{:%FT%TZ}", now);
+	auto formatted = fmt::format(fmt::runtime("{:%FT%TZ}"), now);
 	LOG_TRACE("Frame read successfully from RTP stream, timestamp={}, frameId={}", formatted, frameCounter_ + 1);
 	ImageFrame latestData;
 	latestData.timestamp = std::chrono::system_clock::now();

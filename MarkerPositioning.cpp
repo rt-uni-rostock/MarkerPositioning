@@ -24,6 +24,9 @@
 
 #include "Logger.h"
 
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/fmt/chrono.h>
+
 using namespace std;
 
 
@@ -185,7 +188,7 @@ int main()
         {
             PipelineResult result;
             auto now = std::chrono::system_clock::now();
-            result.imageTimestamp = std::format("{:%FT%TZ}", now);
+            result.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), now);
 
             result.markerId = i;
             result.cameraId = 1;

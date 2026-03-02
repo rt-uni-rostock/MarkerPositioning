@@ -2,6 +2,9 @@
 #include "Logger.h"
 #include <chrono>
 
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/fmt/chrono.h>
+
 // Constructor: sink can be configured with config file, where udp send and logging can be enabled / disabled
 // unique_ptr is used to manage the lifetime of the udp publisher and result logger, they are only created if enabled in the config
 Sink::Sink(const SinkConfig& config) : config_(config)
@@ -264,8 +267,8 @@ void Sink::loggingWorkerLoop() {
 std::string Sink::getCurrentTimestamp() const
 {
 	auto now = std::chrono::system_clock::now();
-	auto formatted = std::format("{:%FT%TZ}", now);
+	auto formatted = fmt::format(fmt::runtime("{:%FT%TZ}"), now);
 
 	LOG_TRACE("Generating current timestamp for logging, current time is: {}", formatted);
-	return std::format("{:%FT%TZ}", now);
+	return fmt::format(fmt::runtime("{:%FT%TZ}"), now);
 }
