@@ -9,7 +9,7 @@
 // settings structure for file
 struct MainSettings {
 	SourceMode sourceMode = SourceMode::Live; 				// Modus der Bildquelle (0=Live, 1=Recorded)
-	StreamType streamType = StreamType::RTP;				// Art des Streams (0=NONE, 1=LUCID, 2=RTP, 3=RTSP)
+	StreamType streamType = StreamType::RTP;				// Art des Streams (0=NONE, 1=LUCID, 2=RTP, 3=RTSP, 4=Webcam)
 	TagType tagType = TagType::AprilTag;					// Art des Fiducial Markers (0=AprilTag, 1=ArUco)
 	// Tag Family?
 	double tagSize = 0.1;									// Größe des AprilTags in Metern

@@ -117,7 +117,19 @@ int main()
         LOG_INFO("Initializing DetectionPipeline...");
 
         DetectionPipelineConfig pipelineConfig;
-        // TODO: configure pipelineConfig based on settings if needed
+		pipelineConfig.cx = settings.cx;
+		pipelineConfig.cy = settings.cy;
+		pipelineConfig.fx = settings.fx;
+		pipelineConfig.fy = settings.fy;
+		pipelineConfig.d1 = settings.d1;
+		pipelineConfig.d2 = settings.d2;
+		pipelineConfig.d3 = settings.d3;
+		pipelineConfig.d4 = settings.d4;
+		pipelineConfig.d5 = settings.d5;
+		pipelineConfig.tagSize = settings.tagSize;
+		pipelineConfig.tagID = settings.tagID;
+		pipelineConfig.quadDecimate = settings.quadDecimate;
+		pipelineConfig.detectionType = (settings.tagType == TagType::AprilTag) ? DetectionType::AprilTag : DetectionType::ArUco;
         DetectionPipeline pipeline(pipelineConfig);
 
         LOG_INFO("DetectionPipeline successfully initialized.");

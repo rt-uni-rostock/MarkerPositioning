@@ -154,6 +154,7 @@ add_library(ImageSource
     IO/ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.cpp
     IO/ImageSource/LiveImageSource/RTPStream/RTPStream.cpp
     IO/ImageSource/LiveImageSource/RTSPStream/RTSPStream.cpp
+    IO/ImageSource/LiveImageSource/WebcamStream/WebcamStream.cpp
     IO/ImageSource/StaticImageSource/StaticImageSource.cpp
 )
 

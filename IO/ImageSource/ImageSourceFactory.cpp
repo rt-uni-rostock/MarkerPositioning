@@ -8,6 +8,7 @@
 #include "ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.h"
 #include "ImageSource/LiveImageSource/RTPStream/RTPStream.h"
 #include "ImageSource/LiveImageSource/RTSPStream/RTSPStream.h"
+#include "ImageSource/LiveImageSource/WebcamStream/WebcamStream.h"
 
 #include "Logger.h"
 
@@ -45,6 +46,10 @@ std::unique_ptr<IImageSource> ImageSourceFactory::create()
 		case StreamType::LUCID:
 			stream = std::make_unique<LUCIDStream>(config_);
 			LOG_TRACE("LUCID stream created successfully.");
+			break;
+		case StreamType::WEBCAM:
+			stream = std::make_unique<WebcamStream>(config_);
+			LOG_TRACE("Webcam stream created successfully.");
 			break;
 		default:
 			LOG_ERROR("Unsupported stream type: {}", static_cast<int>(config_.type));

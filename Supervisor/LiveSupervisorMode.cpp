@@ -1,5 +1,6 @@
 #include "LiveSupervisorMode.h"
 #include "DetectionPipeline.h"
+#include "ImageSource/IImageSource.h"
 #include "Sink.h"
 #include "MainSettings.h"
 #include "Worker.h"
@@ -29,13 +30,17 @@ LiveSupervisorMode::LiveSupervisorMode(
 }
 
 // starts the supervisor thread, which runs the main loop for the live supervisor mode
+// also starts the image source, which runs in its own thread and provides frames for the pipeline
 void LiveSupervisorMode::start() {
+	LOG_TRACE("Starting ImageSource for LiveSupervisorMode...");
+	imgSource_.start();
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");
 	running_ = true;
 	supervisorThread_ = std::thread(&LiveSupervisorMode::supervisorLoop, this);
 }
 
 // stops the supervisor thread and waits for it to finish
+// also stops the image source, which will stop providing frames for the pipeline
 void LiveSupervisorMode::stop() {
 	LOG_TRACE("Stopping LiveSupervisorMode supervisor thread...");
 	running_ = false;
@@ -43,6 +48,8 @@ void LiveSupervisorMode::stop() {
 		LOG_TRACE("Joining LiveSupervisorMode supervisor thread...");
 		supervisorThread_.join();
 	}
+	LOG_TRACE("Stopping ImageSource for LiveSupervisorMode...");
+	imgSource_.stop();
 }
 
 void LiveSupervisorMode::supervisorLoop() {
@@ -51,6 +58,7 @@ void LiveSupervisorMode::supervisorLoop() {
 
 	// calculate interval based on frame rate
 	double interval = round(1000.0 / settings_.frameRate);
+	LOG_TRACE("calculated interval: {}", interval);
 
 	// convert interval to milliseconds
 	intervalMS_ = std::chrono::milliseconds(static_cast<int>(interval));

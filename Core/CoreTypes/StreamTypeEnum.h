@@ -6,5 +6,5 @@ enum class StreamType
 	LUCID = 1,
 	RTP = 2,
 	RTSP = 3,
-
+	WEBCAM = 4
 };
