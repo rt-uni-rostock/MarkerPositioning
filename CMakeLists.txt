@@ -12,7 +12,9 @@ endif()
 project ("MarkerPositioning" LANGUAGES C CXX)
 
 # MSVC soll alle Dateien als UTF-8 interpretieren
-add_compile_options(/utf-8)
+if (MSVC)
+    add_compile_options(/utf-8)
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
