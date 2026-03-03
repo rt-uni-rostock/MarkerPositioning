@@ -18,7 +18,7 @@ ImageSourceFactory::ImageSourceFactory(const ImageSourceConfig& config) : config
 	LOG_TRACE("ImageSourceFactory initialized with config: mode={}, type={}, rtspUrl={}, filePath={}",
 		static_cast<int>(config_.mode),
 		static_cast<int>(config_.type),
-		config_.rtspUrl,
+		config_.srcUrl,
 		config_.filePath);
 }
 

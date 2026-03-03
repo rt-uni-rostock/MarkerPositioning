@@ -6,7 +6,7 @@
 WebcamStream::WebcamStream(const ImageSourceConfig& settings) : settings_(settings)
 {
 	LOG_TRACE("WebcamStream created with provided settings: rtspUrl={}",
-		settings.rtspUrl);
+		settings.srcUrl);
 }
 
 WebcamStream::~WebcamStream()

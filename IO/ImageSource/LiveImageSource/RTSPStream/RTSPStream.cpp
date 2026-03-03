@@ -10,7 +10,7 @@
 RTSPStream::RTSPStream(const ImageSourceConfig& settings) : settings_(settings)
 {
 	LOG_TRACE("RTSPStream created with provided settings: rtspUrl={}",
-		settings.rtspUrl);
+		settings.srcUrl);
 }
 
 RTSPStream::~RTSPStream()
@@ -29,7 +29,7 @@ void RTSPStream::open()
 {
 	LOG_TRACE("Opening RTSP stream...");
 
-	cap.open(settings_.rtspUrl); //, cv::CAP_FFMPEG
+	cap.open(settings_.srcUrl); //, cv::CAP_FFMPEG
 
 	if (!cap.isOpened())
 	{

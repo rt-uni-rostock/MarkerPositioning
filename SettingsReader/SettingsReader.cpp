@@ -29,7 +29,7 @@ void to_json(json& j, const MainSettings& s)
 		{"d4", s.d4},
 		{"d5", s.d5},
 		{"quadDecimate", s.quadDecimate},
-		{"rtspUrl", s.rtspUrl},
+		{"rtspUrl", s.imgSrc1Url},
 		{"udpIp", s.udpIp},
 		{"udpPort", s.udpPort},
 		{"frameRate", s.frameRate}
@@ -59,7 +59,7 @@ void from_json(const json& j, MainSettings& s)
 
 	s.quadDecimate = j.value("quadDecimate", s.quadDecimate);
 
-	s.rtspUrl = j.value("rtspUrl", s.rtspUrl);
+	s.imgSrc1Url = j.value("rtspUrl", s.imgSrc1Url);
 	s.udpIp = j.value("udpIp", s.udpIp);
 	s.udpPort = j.value("udpPort", s.udpPort);
 

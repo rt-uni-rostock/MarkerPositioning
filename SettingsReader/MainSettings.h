@@ -24,7 +24,8 @@ struct MainSettings {
 	double d4 = 0.0;										// Tangentiale Verzerrung p1
 	double d5 = 0.0;										// Tangentiale Verzerrung p2
 	double quadDecimate = 4.0;								// Quad-Decimation-Faktor für die Erkennung
-	std::string rtspUrl = "rtsp://localhost:58000/live";    // RTSP URL der Kamera
+	std::string imgSrc1Url = "rtsp://localhost:58000/live"; // RTSP URL der Kamera
+	std::string imgSrc2Url = "rtsp://localhost:58001/live"; // RTSP URL der Kamera
 	std::string udpIp = "192.168.3.50";						// Ziel-IP für UDP-Sende
 	int udpPort = 5001;										// Ziel-Port für UDP-Sende
 	double frameRate = 30.0;								// Frame-Rate der Kamera

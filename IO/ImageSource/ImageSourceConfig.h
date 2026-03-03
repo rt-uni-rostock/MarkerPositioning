@@ -13,6 +13,6 @@ struct ImageSourceConfig {
 	SourceMode mode = SourceMode::Live;
 	StreamType type = StreamType::RTP;
 
-	std::string rtspUrl; // for RTSP stream
+	std::string srcUrl; // for stream
 	std::string filePath; // for recorded mode
 };

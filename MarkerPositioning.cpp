@@ -94,29 +94,46 @@ int main()
         const MainSettings& settings = settingsReader.get();
 
         LOG_INFO("Settings loaded successfully.");
-        LOG_TRACE("Loaded settings: sourceMode={} streamType={}, tagType={}, tagSize={}, tagID={}, fx={}, fy={}, cx={}, cy={}, d1={}, d2={}, d3={}, d4={}, d5={}, quadDecimate={}, rtspUrl={}, udpIp={}, udpPort={}, frameRate={}",
+        LOG_TRACE("Loaded settings: sourceMode={} streamType={}, tagType={}, tagSize={}, tagID={}, fx={}, fy={}, cx={}, cy={}, d1={}, d2={}, d3={}, d4={}, d5={}, quadDecimate={}, imgSrc1Url={}, imgSrc2Url={}, udpIp={}, udpPort={}, frameRate={}",
             static_cast<int>(settings.sourceMode), static_cast<int>(settings.streamType), static_cast<int>(settings.tagType), settings.tagSize, settings.tagID, settings.fx, settings.fy, settings.cx,
-            settings.cy, settings.d1, settings.d2, settings.d3, settings.d4, settings.d5, settings.quadDecimate, settings.rtspUrl, settings.udpIp,
+            settings.cy, settings.d1, settings.d2, settings.d3, settings.d4, settings.d5, settings.quadDecimate, settings.imgSrc1Url, settings.imgSrc2Url, settings.udpIp,
             settings.udpPort, settings.frameRate);
 
         //OLD: Start main threads manager, which handles all threads, including image receiving, detection, and UDP sending
         //OLD: MainThreadsManager mainThreadsManager = MainThreadsManager(settings);
 
-        LOG_INFO("Initializing ImageSource...");
+        LOG_INFO("Initializing ImageSource 1...");
 
-        ImageSourceConfig sourceConfig;
-		sourceConfig.mode = settings.sourceMode;
-		sourceConfig.type = settings.streamType;
-		sourceConfig.rtspUrl = settings.rtspUrl;
+        ImageSourceConfig sourceConfig1;
+		sourceConfig1.mode = settings.sourceMode;
+		sourceConfig1.type = settings.streamType;
+		sourceConfig1.srcUrl = settings.imgSrc1Url;
         // TODO: static files path in settings
-		sourceConfig.filePath = "C:/path/to/images"; // for recorded mode, path to image files
+		sourceConfig1.filePath = "C:/path/to/images"; // for recorded mode, path to image files
         
-		LOG_INFO("Selecting ImageSource based on settings: mode={}, type={}", static_cast<int>(sourceConfig.mode), static_cast<int>(sourceConfig.type));
+		LOG_INFO("Selecting ImageSource1 based on settings: mode={}, type={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.type));
 
-        ImageSourceFactory source(sourceConfig);
-		auto imgSource = source.create();
+        ImageSourceFactory source1(sourceConfig1);
+		auto imgSource1 = source1.create();
 
-        LOG_INFO("ImageSource successfully initialized.");
+        LOG_INFO("ImageSource1 successfully initialized.");
+
+        //LOG_INFO("Initializing ImageSource 2...");
+
+        //ImageSourceConfig sourceConfig2;
+        //sourceConfig2.mode = settings.sourceMode;
+        //sourceConfig2.type = settings.streamType;
+        //sourceConfig2.srcUrl = settings.imgSrc2Url;
+        //// TODO: static files path in settings
+        //sourceConfig2.filePath = "C:/path/to/images"; // for recorded mode, path to image files
+
+        //LOG_INFO("Selecting ImageSource2 based on settings: mode={}, type={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.type));
+
+        //ImageSourceFactory source2(sourceConfig2);
+        //auto imgSource2 = source2.create();
+
+        //LOG_INFO("ImageSource2 successfully initialized.");
+
         LOG_INFO("Initializing DetectionPipeline...");
 
         DetectionPipelineConfig pipelineConfig;
@@ -158,7 +175,7 @@ int main()
 		
         LOG_INFO("Live Supervisor Mode selected based on settings, initializing supervisor...");
         
-        LiveSupervisorMode supervisor(*imgSource, pipeline, sink, settings);
+        LiveSupervisorMode supervisor(*imgSource1, pipeline, sink, settings);
 
 		LOG_INFO("Supervisor successfully initialized.");
 		LOG_INFO("Starting Supervisor...");
@@ -172,9 +189,10 @@ int main()
 
 		LOG_INFO("Shutdown signal received, stopping Supervisor...");
 
+        // TODO: warum supervisor stop bevor sink?
         supervisor.stop();
 
-		LOG_INFO("Supervisor stopped successfully.");
+		/*LOG_INFO("Supervisor stopped successfully.");
 
         LOG_INFO("Starting Sink...");
 
@@ -209,16 +227,16 @@ int main()
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        LOG_INFO("Finished sending test results.");
+        LOG_INFO("Finished sending test results.");*/
 
-        // ---- Let workers process ----
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        //// ---- Let workers process ----
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        LOG_INFO("Stopping Sink...");
+        //LOG_INFO("Stopping Sink...");
 
-        sink.stop();
+        //sink.stop();
 
-        LOG_INFO("Sink stopped.");
+        //LOG_INFO("Sink stopped.");
 
     }
 

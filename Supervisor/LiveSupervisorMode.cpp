@@ -15,28 +15,29 @@ using steady_clock = std::chrono::steady_clock;
 
 // constructor: initializes the main threads with the given settings
 LiveSupervisorMode::LiveSupervisorMode(
-	IImageSource& imgSource,
+	IImageSource& imgSource1,
     DetectionPipeline& pipeline,
 	Sink& sink,
     const MainSettings& settings
-) : imgSource_(imgSource), pipeline_(pipeline), sink_(sink), settings_(settings)
+) : imgSource1_(imgSource1), pipeline_(pipeline), sink_(sink), settings_(settings)
 {
 	// create workers for the pipeline
     // supervisor is single owner of the workers
     // pushes workers at the end of the vector, creates worker in container
 	LOG_TRACE("Initializing LiveSupervisorMode with two workers...");
-	workers_.emplace_back(std::make_unique<Worker>(imgSource_, pipeline_));
-	workers_.emplace_back(std::make_unique<Worker>(imgSource_, pipeline_));
+	// TODO: add image source 2 for pipeline
+	workers_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
+	workers_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
 }
 
 // starts the supervisor thread, which runs the main loop for the live supervisor mode
 // also starts the image source, which runs in its own thread and provides frames for the pipeline
 void LiveSupervisorMode::start() {
 	LOG_TRACE("Starting ImageSource for LiveSupervisorMode...");
-	imgSource_.start();
+	imgSource1_.start();
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");
 	running_ = true;
-	supervisorThread_ = std::thread(&LiveSupervisorMode::supervisorLoop, this);
+	//supervisorThread_ = std::thread(&LiveSupervisorMode::supervisorLoop, this);
 }
 
 // stops the supervisor thread and waits for it to finish
@@ -44,12 +45,12 @@ void LiveSupervisorMode::start() {
 void LiveSupervisorMode::stop() {
 	LOG_TRACE("Stopping LiveSupervisorMode supervisor thread...");
 	running_ = false;
-	if (supervisorThread_.joinable()) {
+	/*if (supervisorThread_.joinable()) {
 		LOG_TRACE("Joining LiveSupervisorMode supervisor thread...");
 		supervisorThread_.join();
-	}
+	}*/
 	LOG_TRACE("Stopping ImageSource for LiveSupervisorMode...");
-	imgSource_.stop();
+	imgSource1_.stop();
 }
 
 void LiveSupervisorMode::supervisorLoop() {

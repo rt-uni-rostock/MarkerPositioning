@@ -15,7 +15,7 @@ class LiveSupervisorMode : public ISupervisorMode {
 public:
     
     explicit LiveSupervisorMode(
-        IImageSource& imgSource,
+        IImageSource& imgSource1,
         DetectionPipeline& pipeline,
 		Sink& sink,
         const MainSettings& settings
@@ -31,7 +31,7 @@ private:
 	Worker* acquireFreeWorker();
     
 
-    IImageSource& imgSource_;
+    IImageSource& imgSource1_;
     DetectionPipeline& pipeline_;
 	Sink& sink_;
 	const MainSettings& settings_;

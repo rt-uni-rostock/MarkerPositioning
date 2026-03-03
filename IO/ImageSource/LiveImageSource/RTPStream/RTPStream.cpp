@@ -9,7 +9,7 @@
 RTPStream::RTPStream(const ImageSourceConfig& settings) : settings_(settings)
 {
 	LOG_TRACE("RTPStream created with provided settings: rtspUrl={}",
-		settings.rtspUrl);
+		settings.srcUrl);
 }
 
 RTPStream::~RTPStream()
