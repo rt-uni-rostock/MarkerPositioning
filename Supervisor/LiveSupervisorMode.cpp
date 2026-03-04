@@ -9,7 +9,8 @@
 #include <cmath>
 #include <iostream>
 
-
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/fmt/chrono.h>
 
 using steady_clock = std::chrono::steady_clock;
 
@@ -35,6 +36,8 @@ LiveSupervisorMode::LiveSupervisorMode(
 void LiveSupervisorMode::start() {
 	LOG_TRACE("Starting ImageSource for LiveSupervisorMode...");
 	imgSource1_.start();
+	LOG_TRACE("Starting Sink for LiveSupervisorMode...");
+	sink_.start();
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");
 	running_ = true;
 	supervisorThread_ = std::thread(&LiveSupervisorMode::supervisorLoop, this);
@@ -51,6 +54,8 @@ void LiveSupervisorMode::stop() {
 	}
 	LOG_TRACE("Stopping ImageSource for LiveSupervisorMode...");
 	imgSource1_.stop();
+	LOG_TRACE("Stopping Sink for LiveSupervisorMode...");
+	sink_.stop();
 }
 
 void LiveSupervisorMode::supervisorLoop() {
@@ -110,7 +115,22 @@ void LiveSupervisorMode::handleCycle() {
 		cycleId,
 		[this, cycleId](const DetectionResult result) {
 			LOG_INFO("Worker completed successfully for cycle {}, result: {}", cycleId, result.markerId);
-			//sink_sendResult(result);
+			
+			PipelineResult pipelineResult;
+			pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), result.timestamp);
+			pipelineResult.markerId = result.markerId;
+			pipelineResult.cameraId = 1; // TODO: get actual camera id if we have multiple sources
+			pipelineResult.markerType = 0;
+			pipelineResult.errorCode = result.success ? 0 : 1;
+			pipelineResult.errorMessage = result.success ? "" : "Detection failed";
+			pipelineResult.posX = result.pose.x;
+			pipelineResult.posY = result.pose.y;
+			pipelineResult.posZ = result.pose.z;
+			pipelineResult.rotX = result.pose.roll;
+			pipelineResult.rotY = result.pose.pitch;
+			pipelineResult.rotZ = result.pose.yaw;
+			
+			sink_.send(pipelineResult);
 			// TODO: send result via sink
 		},
 		[this, cycleId](const std::string& err) {
