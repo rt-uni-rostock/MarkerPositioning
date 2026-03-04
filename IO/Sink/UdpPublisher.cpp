@@ -77,7 +77,7 @@ void UdpPublisher::send(const PipelineResult& result)
 	std::array<uint8_t, UDP_PACKET_SIZE> buffer{};
 	serialize(result, buffer);
 	// calc buffer size
-	int bufferSize = static_cast<int>(buffer.size());
+	/*int bufferSize = static_cast<int>(buffer.size());
 	LOG_TRACE("Serialized PipelineResult into UDP packet of size {} bytes.", bufferSize);
 
 	int sent = sendto(
@@ -86,13 +86,23 @@ void UdpPublisher::send(const PipelineResult& result)
 		static_cast<int>(buffer.size()),
 		0,
 		reinterpret_cast<sockaddr*>(&destAddr_),
-		sizeof(destAddr_));
+		sizeof(destAddr_));*/
 
-	if (sent == SOCKET_ERROR)
-	{
-		// Do not throw here in real-time context unless required.
-		std::cerr << "UDP send failed\n";
-	}
+	/*size_t used = ptr - buffer.data();
+
+	sendto(
+		socket_,
+		reinterpret_cast<const char*>(buffer.data()),
+		static_cast<int>(used),
+		0,
+		reinterpret_cast<sockaddr*>(&destAddr_),
+		sizeof(destAddr_));*/
+
+	//if (sent == SOCKET_ERROR)
+	//{
+	//	// Do not throw here in real-time context unless required.
+	//	std::cerr << "UDP send failed\n";
+	//}
 }
 
 // Serializes PipelineResult into fixed-size UDP packet.
@@ -119,5 +129,21 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 	write(r.rotX);					//float 4 bytes
 	write(r.rotY);					//float 4 bytes
 	write(r.rotZ);					//float 4 bytes
+
+	size_t used = ptr - buffer.data();
+
+	int sent = sendto(
+		socket_,
+		reinterpret_cast<const char*>(buffer.data()),
+		static_cast<int>(used),
+		0,
+		reinterpret_cast<sockaddr*>(&destAddr_),
+		sizeof(destAddr_));
+
+	if (sent == SOCKET_ERROR)
+	{
+		// Do not throw here in real-time context unless required.
+		std::cerr << "UDP send failed\n";
+	}
 
 }
