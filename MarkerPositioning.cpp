@@ -108,6 +108,7 @@ int main()
 		sourceConfig1.mode = settings.sourceMode;
 		sourceConfig1.type = settings.streamType;
 		sourceConfig1.srcUrl = settings.imgSrc1Url;
+		sourceConfig1.streamId = settings.streamId;
         // TODO: static files path in settings
 		sourceConfig1.filePath = "C:/path/to/images"; // for recorded mode, path to image files
         
