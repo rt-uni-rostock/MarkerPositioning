@@ -32,7 +32,8 @@ void to_json(json& j, const MainSettings& s)
 		{"rtspUrl", s.imgSrc1Url},
 		{"udpIp", s.udpIp},
 		{"udpPort", s.udpPort},
-		{"frameRate", s.frameRate}
+		{"frameRate", s.frameRate},
+		{"streamId", s.streamId }
 	};
 }
 
@@ -64,6 +65,8 @@ void from_json(const json& j, MainSettings& s)
 	s.udpPort = j.value("udpPort", s.udpPort);
 
 	s.frameRate = j.value("frameRate", s.frameRate);
+
+	s.streamId = j.value("streamId", s.streamId);
 }
 
 
