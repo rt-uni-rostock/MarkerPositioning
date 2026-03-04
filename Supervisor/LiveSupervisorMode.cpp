@@ -37,7 +37,7 @@ void LiveSupervisorMode::start() {
 	imgSource1_.start();
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");
 	running_ = true;
-	//supervisorThread_ = std::thread(&LiveSupervisorMode::supervisorLoop, this);
+	supervisorThread_ = std::thread(&LiveSupervisorMode::supervisorLoop, this);
 }
 
 // stops the supervisor thread and waits for it to finish
@@ -45,10 +45,10 @@ void LiveSupervisorMode::start() {
 void LiveSupervisorMode::stop() {
 	LOG_TRACE("Stopping LiveSupervisorMode supervisor thread...");
 	running_ = false;
-	/*if (supervisorThread_.joinable()) {
+	if (supervisorThread_.joinable()) {
 		LOG_TRACE("Joining LiveSupervisorMode supervisor thread...");
 		supervisorThread_.join();
-	}*/
+	}
 	LOG_TRACE("Stopping ImageSource for LiveSupervisorMode...");
 	imgSource1_.stop();
 }

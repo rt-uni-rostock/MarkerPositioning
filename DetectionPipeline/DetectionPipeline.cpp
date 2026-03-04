@@ -35,6 +35,9 @@ DetectionResult DetectionPipeline::process(ImageFrame& frame)
 	LOG_INFO("Detecting in frame with ID: {}", frame.frameId);
 	DetectionResult rawResult = detector_->process(preprocessedFrame);
 
+	LOG_INFO("Detection completed for frame ID: {}, success: {}, marker ID: {}", frame.frameId, rawResult.success, rawResult.markerId);
+	LOG_INFO("Raw detection result: posx={}, posy={}, posz={}, roll={}, pitch={}, yaw={}", rawResult.pose.x, rawResult.pose.y, rawResult.pose.z, rawResult.pose.roll, rawResult.pose.pitch, rawResult.pose.yaw);
+
 	// Postprocessing step
 	LOG_INFO("PostProcessing detection result for frame with ID: {}", frame.frameId);
 	DetectionResult finalResult = postprocessor_->process(rawResult);
