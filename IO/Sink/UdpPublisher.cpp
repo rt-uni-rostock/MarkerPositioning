@@ -106,7 +106,7 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 			ptr += sizeof(value);
 		};
 
-	write(r.imageTimestamp);		//string, 24 bytes (ISO 8601 format)
+	//write(r.imageTimestamp);		//string, 24 bytes (ISO 8601 format)
 	write(r.markerId);				//int32_t 4 bytes
 	write(r.cameraId);				//int32_t 4 bytes
 	write(r.markerType);			//int32_t 4 bytes
