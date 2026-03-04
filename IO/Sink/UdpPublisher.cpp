@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <iostream>
 
+#include "Logger.h"
+
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -74,6 +76,9 @@ void UdpPublisher::send(const PipelineResult& result)
 {
 	std::array<uint8_t, UDP_PACKET_SIZE> buffer{};
 	serialize(result, buffer);
+	// calc buffer size
+	int bufferSize = static_cast<int>(buffer.size());
+	LOG_TRACE("Serialized PipelineResult into UDP packet of size {} bytes.", bufferSize);
 
 	int sent = sendto(
 		socket_,
@@ -101,18 +106,18 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 			ptr += sizeof(value);
 		};
 
-	write(r.imageTimestamp);
-	write(r.markerId);
-	write(r.cameraId);
-	write(r.markerType);
-	write(r.errorCode);
+	write(r.imageTimestamp);		//string, 24 bytes (ISO 8601 format)
+	write(r.markerId);				//int32_t 4 bytes
+	write(r.cameraId);				//int32_t 4 bytes
+	write(r.markerType);			//int32_t 4 bytes
+	write(r.errorCode);				//int32_t 4 bytes
 
-	write(r.posX);
-	write(r.posY);
-	write(r.posZ);
+	write(r.posX);					//float 4 bytes
+	write(r.posY);					//float 4 bytes
+	write(r.posZ);					//float 4 bytes
 
-	write(r.rotX);
-	write(r.rotY);
-	write(r.rotZ);
+	write(r.rotX);					//float 4 bytes
+	write(r.rotY);					//float 4 bytes
+	write(r.rotZ);					//float 4 bytes
 
 }
