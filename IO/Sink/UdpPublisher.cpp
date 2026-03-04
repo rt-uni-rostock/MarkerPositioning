@@ -117,7 +117,7 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 		};
 
 	//write(r.imageTimestamp);		//string, 24 bytes (ISO 8601 format)
-	write(r.markerId);				//int32_t 4 bytes
+	//write(r.markerId);				//int32_t 4 bytes
 	//write(r.cameraId);				//int32_t 4 bytes
 	//write(r.markerType);			//int32_t 4 bytes
 	//write(r.errorCode);				//int32_t 4 bytes
@@ -126,17 +126,17 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 	double testval2 = 0;
 	uint8_t testval3 = 0;
 
-	write(static_cast<double>(r.rotX));					//float 4 bytes
-	write(static_cast<double>(r.rotZ));					//float 4 bytes
-	write(static_cast<double>(r.rotY));					//float 4 bytes
+	write(static_cast<double>(r.rotX));					//float 8 bytes
+	write(static_cast<double>(r.rotZ));					//float 8 bytes
+	write(static_cast<double>(r.rotY));					//float 8 bytes
 	
-	write(testval);
+	write(testval);										//double 8 bytes
 
-	write(static_cast<double>(r.posX));					//float 4 bytes
-	write(static_cast<double>(r.posY));					//float 4 bytes
-	write(static_cast<double>(r.posZ));					//float 4 bytes
+	write(static_cast<double>(r.posX));					//float 8 bytes
+	write(static_cast<double>(r.posY));					//float 8 bytes
+	write(static_cast<double>(r.posZ));					//float 8 bytes
 
-	write(static_cast<uint8_t>(r.markerId));
+	write(static_cast<uint8_t>(r.markerId));			// uint8_t 1 byte
 
 
 
