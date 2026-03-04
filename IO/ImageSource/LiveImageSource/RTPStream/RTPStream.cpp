@@ -83,6 +83,7 @@ ImageFrame RTPStream::getFrame()
 	if (!cap.read(frame))
 	{
 		LOG_ERROR("Could not read frame from RTP stream, returning empty frame");
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		return ImageFrame{ cv::Mat(), std::chrono::system_clock::now() };
 	}
 
