@@ -76,6 +76,7 @@ ImageFrame RTPStream::getFrame()
 	if (!cap.isOpened())
 	{
 		LOG_ERROR("RTP stream is not open, cannot get frame. Return empty frame.");
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		return ImageFrame{ cv::Mat(), std::chrono::system_clock::now() };
 	}
 
