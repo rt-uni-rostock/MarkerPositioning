@@ -118,9 +118,12 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 
 	//write(r.imageTimestamp);		//string, 24 bytes (ISO 8601 format)
 	write(r.markerId);				//int32_t 4 bytes
-	write(r.cameraId);				//int32_t 4 bytes
-	write(r.markerType);			//int32_t 4 bytes
-	write(r.errorCode);				//int32_t 4 bytes
+	//write(r.cameraId);				//int32_t 4 bytes
+	//write(r.markerType);			//int32_t 4 bytes
+	//write(r.errorCode);				//int32_t 4 bytes
+
+	int32_t testval = -1;
+	int32_t testval2 = 0;
 
 	write(r.posX);					//float 4 bytes
 	write(r.posY);					//float 4 bytes
@@ -129,6 +132,33 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 	write(r.rotX);					//float 4 bytes
 	write(r.rotY);					//float 4 bytes
 	write(r.rotZ);					//float 4 bytes
+
+	write(r.markerId);
+	write(testval);
+
+
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+		  
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+
+	write(testval2);
+	write(testval2);
+
+
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+
+	write(testval2);
+	write(testval2);
 
 	size_t used = ptr - buffer.data();
 
