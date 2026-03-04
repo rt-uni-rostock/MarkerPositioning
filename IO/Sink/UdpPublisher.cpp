@@ -122,43 +122,50 @@ void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PA
 	//write(r.markerType);			//int32_t 4 bytes
 	//write(r.errorCode);				//int32_t 4 bytes
 
-	int32_t testval = -1;
-	int32_t testval2 = 0;
+	double testval = -1;
+	double testval2 = 0;
+	uint8_t testval3 = 0;
 
-	write(r.posX);					//float 4 bytes
-	write(r.posY);					//float 4 bytes
-	write(r.posZ);					//float 4 bytes
-
-	write(r.rotX);					//float 4 bytes
-	write(r.rotY);					//float 4 bytes
-	write(r.rotZ);					//float 4 bytes
-
-	write(r.markerId);
+	write(static_cast<double>(r.rotX));					//float 4 bytes
+	write(static_cast<double>(r.rotZ));					//float 4 bytes
+	write(static_cast<double>(r.rotY));					//float 4 bytes
+	
 	write(testval);
+
+	write(static_cast<double>(r.posX));					//float 4 bytes
+	write(static_cast<double>(r.posY));					//float 4 bytes
+	write(static_cast<double>(r.posZ));					//float 4 bytes
+
+	write(static_cast<uint8_t>(r.markerId));
+
 
 
 	write(testval2);					//float 4 bytes
 	write(testval2);					//float 4 bytes
 	write(testval2);					//float 4 bytes
 		  
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-
-	write(testval2);
 	write(testval2);
 
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
 
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
+	write(testval3);
+	
+
 
 	write(testval2);					//float 4 bytes
 	write(testval2);					//float 4 bytes
 	write(testval2);					//float 4 bytes
 
 	write(testval2);
-	write(testval2);
+
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+	write(testval2);					//float 4 bytes
+
+	write(testval3);
+	
 
 	size_t used = ptr - buffer.data();
 
