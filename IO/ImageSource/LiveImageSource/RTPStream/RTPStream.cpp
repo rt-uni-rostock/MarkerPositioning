@@ -29,9 +29,28 @@ void RTPStream::open()
 {
 	LOG_TRACE("Opening Gstreamer RTP stream...");
 
-	std::string pipeline =
+	/*std::string pipeline =
+	"udpsrc port=5600 caps=\"application/x-rtp, media=video, encoding-name=JPEG, payload=26\" ! "
+	"rtpjpegdepay ! jpegdec ! videoconvert ! "
+	"appsink drop=true max-buffers=1 sync=false";*/
+
+	/*std::string pipeline =
 		"udpsrc port=5600 caps=\"application/x-rtp, media=video, encoding-name=JPEG, payload=26\" ! "
-		"rtpjpegdepay ! jpegdec ! videoconvert ! appsink";
+		"rtpjpegdepay ! jpegdec ! videoconvert ! appsink";*/
+
+	std::string pipeline =
+		"v4l2src device=/dev/video2 do-timestamp=true ! "
+		"image/jpeg,width=1600,height=1200,framerate=15/1 ! "
+		"jpegdec ! videoconvert ! "
+		"tee name=t "
+
+		"t. ! queue ! "
+		"appsink drop=true max-buffers=2 sync=false "
+
+		"t. ! queue ! "
+		"x264enc tune=zerolatency speed-preset=ultrafast bitrate=2000 key-int-max=15 bframes=0 ! "
+		"rtph264pay config-interval=1 pt=96 ! "
+		"udpsink host=192.168.3.35 port=5602 sync=false async=false";
 
 	cap.open(pipeline, cv::CAP_GSTREAMER);
 	if (!cap.isOpened())
@@ -69,7 +88,7 @@ ImageFrame RTPStream::getFrame()
 
 	auto now = std::chrono::system_clock::now();
 	auto formatted = fmt::format(fmt::runtime("{:%FT%TZ}"), now);
-	LOG_TRACE("Frame read successfully from RTP stream, timestamp={}, frameId={}", formatted, frameCounter_ + 1);
+	LOG_INFO("Frame read successfully from RTP stream, timestamp={}, frameId={}", formatted, frameCounter_ + 1);
 	ImageFrame latestData;
 	latestData.timestamp = std::chrono::system_clock::now();
 	latestData.frameId = frameCounter_++;
