@@ -29,17 +29,8 @@ void RTPStream::open()
 {
 	LOG_TRACE("Opening Gstreamer RTP stream...");
 
-	/*std::string pipeline =
-	"udpsrc port=5600 caps=\"application/x-rtp, media=video, encoding-name=JPEG, payload=26\" ! "
-	"rtpjpegdepay ! jpegdec ! videoconvert ! "
-	"appsink drop=true max-buffers=1 sync=false";*/
-
-	/*std::string pipeline =
-		"udpsrc port=5600 caps=\"application/x-rtp, media=video, encoding-name=JPEG, payload=26\" ! "
-		"rtpjpegdepay ! jpegdec ! videoconvert ! appsink";*/
-
 	std::string pipeline =
-		"v4l2src device=/dev/video2 do-timestamp=true ! "
+		std::string("v4l2src device=/dev/video") + std::to_string(settings_.streamId) + " do-timestamp=true ! "
 		"image/jpeg,width=1600,height=1200,framerate=15/1 ! "
 		"jpegdec ! "
 		"tee name=t "

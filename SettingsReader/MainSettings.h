@@ -29,4 +29,5 @@ struct MainSettings {
 	std::string udpIp = "192.168.3.50";						// Ziel-IP für UDP-Sende
 	int udpPort = 5001;										// Ziel-Port für UDP-Sende
 	double frameRate = 30.0;								// Frame-Rate der Kamera
+	int streamId = 0;										// ID des Streams
 };
