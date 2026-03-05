@@ -154,6 +154,7 @@ void LiveSupervisorMode::handleCycle() {
 			pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), std::chrono::system_clock::now());
 			pipelineResult.errorCode = 1;
 			pipelineResult.errorMessage = err;
+			sink_.send(pipelineResult);
 		}
 	);
 
