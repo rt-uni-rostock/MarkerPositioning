@@ -63,9 +63,10 @@ DetectionResult AprilTagDetection::process(const ImageFrame& frame) {
 	result.frameId = frame.frameId;
 	result.timestamp = frame.timestamp;
 	result.markerId = pose.tagId;
+	result.success = pose.tagId != -1;
 
 	LOG_TRACE("Finished processing frame with ID: {} in AprilTag Detection, success: {}, tag ID: {}, pose error: {}",
-		frame.frameId, pose.tagId != 0, pose.tagId, pose.poseError);
+		frame.frameId, pose.tagId != -1, pose.tagId, pose.poseError);
 	
 	return result;
 }
