@@ -101,6 +101,9 @@ void LiveSupervisorMode::handleCycle() {
 	++cycleCount_;
 
 	// free worker thread, where the pipeline can be executed
+	// TODO: aquire free worker for each image source
+	// Worker* workerSrc1 = acquireFreeWorker(imgSrcId(1));
+	// Worker* workerSrc2 = acquireFreeWorker(imgSrcId(2));
 	Worker* worker = acquireFreeWorker();
 
 	// if no worker is available, log an error and skip this cycle
@@ -111,10 +114,16 @@ void LiveSupervisorMode::handleCycle() {
 		//sink_.sendError("No free worker in cycle " + std::to_string(cycleCount_));
 		return;
 	}
+	// TODO: error for each image source if no worker is available
+	// if (!workerSrc1) {
+	// ...
+	// if (!workerSrc2) {
+	// ...
 
 	// id of current cycle, used for logging and error handling
 	auto cycleId = cycleCount_;
 
+	// for each worker start thread
 	LOG_TRACE("Starting worker for LiveSupervisorMode cycle {}...", cycleId);
 	worker->start(
 		cycleId,
@@ -135,8 +144,8 @@ void LiveSupervisorMode::handleCycle() {
 			pipelineResult.rotY = result.pose.pitch;
 			pipelineResult.rotZ = result.pose.yaw;
 			
+			// send pipeline result to sink
 			sink_.send(pipelineResult);
-			// TODO: send result via sink
 		},
 		[this, cycleId](const std::string& err) {
 			LOG_ERROR("Worker failed for cycle {}, error: {}", cycleId, err);
