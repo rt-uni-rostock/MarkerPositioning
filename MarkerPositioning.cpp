@@ -108,7 +108,7 @@ int main()
 		sourceConfig1.mode = settings.sourceMode;
 		sourceConfig1.type = settings.streamType;
 		sourceConfig1.srcUrl = settings.imgSrc1Url;
-		sourceConfig1.streamId = settings.streamId;
+		sourceConfig1.streamId = 0; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
         // TODO: static files path in settings
 		sourceConfig1.filePath = "C:/path/to/images"; // for recorded mode, path to image files
         
@@ -119,21 +119,23 @@ int main()
 
         LOG_INFO("ImageSource1 successfully initialized.");
 
-        //LOG_INFO("Initializing ImageSource 2...");
+        LOG_INFO("Initializing ImageSource 2...");
 
-        //ImageSourceConfig sourceConfig2;
-        //sourceConfig2.mode = settings.sourceMode;
-        //sourceConfig2.type = settings.streamType;
-        //sourceConfig2.srcUrl = settings.imgSrc2Url;
+        ImageSourceConfig sourceConfig2;
+        sourceConfig2.mode = settings.sourceMode;
+        sourceConfig2.type = settings.streamType;
+        sourceConfig2.srcUrl = settings.imgSrc2Url;
+		sourceConfig2.streamId = 2; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
         //// TODO: static files path in settings
-        //sourceConfig2.filePath = "C:/path/to/images"; // for recorded mode, path to image files
+        // TODO: use path also for gstreamer?
+        sourceConfig2.filePath = "C:/path/to/images"; // for recorded mode, path to image files
 
-        //LOG_INFO("Selecting ImageSource2 based on settings: mode={}, type={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.type));
+        LOG_INFO("Selecting ImageSource2 based on settings: mode={}, type={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.type));
 
-        //ImageSourceFactory source2(sourceConfig2);
-        //auto imgSource2 = source2.create();
+        ImageSourceFactory source2(sourceConfig2);
+        auto imgSource2 = source2.create();
 
-        //LOG_INFO("ImageSource2 successfully initialized.");
+        LOG_INFO("ImageSource2 successfully initialized.");
 
         LOG_INFO("Initializing DetectionPipeline...");
 
@@ -176,7 +178,8 @@ int main()
 		
         LOG_INFO("Live Supervisor Mode selected based on settings, initializing supervisor...");
         
-        LiveSupervisorMode supervisor(*imgSource1, pipeline, sink, settings);
+        // TODO: hier müsste ein Vektor an ImageSources übergeben werden
+        LiveSupervisorMode supervisor(*imgSource1, *imgSource2, pipeline, sink, settings);
 
 		LOG_INFO("Supervisor successfully initialized.");
 		LOG_INFO("Starting Supervisor...");

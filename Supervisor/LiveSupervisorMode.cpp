@@ -17,18 +17,21 @@ using steady_clock = std::chrono::steady_clock;
 // constructor: initializes the main threads with the given settings
 LiveSupervisorMode::LiveSupervisorMode(
 	IImageSource& imgSource1,
+	IImageSource& imgSource2,
     DetectionPipeline& pipeline,
 	Sink& sink,
     const MainSettings& settings
-) : imgSource1_(imgSource1), pipeline_(pipeline), sink_(sink), settings_(settings)
+) : imgSource1_(imgSource1), imgSource2_(imgSource2), pipeline_(pipeline), sink_(sink), settings_(settings)
 {
 	// create workers for the pipeline
     // supervisor is single owner of the workers
     // pushes workers at the end of the vector, creates worker in container
 	LOG_TRACE("Initializing LiveSupervisorMode with two workers...");
 	// TODO: add image source 2 for pipeline
-	workers_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
-	workers_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
+	workersSrc1_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
+	workersSrc1_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
+	workersSrc2_.emplace_back(std::make_unique<Worker>(imgSource2_, pipeline_));
+	workersSrc2_.emplace_back(std::make_unique<Worker>(imgSource2_, pipeline_));
 }
 
 // starts the supervisor thread, which runs the main loop for the live supervisor mode
@@ -36,6 +39,7 @@ LiveSupervisorMode::LiveSupervisorMode(
 void LiveSupervisorMode::start() {
 	LOG_TRACE("Starting ImageSource for LiveSupervisorMode...");
 	imgSource1_.start();
+	imgSource2_.start();
 	LOG_TRACE("Starting Sink for LiveSupervisorMode...");
 	sink_.start();
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");
@@ -54,6 +58,7 @@ void LiveSupervisorMode::stop() {
 	}
 	LOG_TRACE("Stopping ImageSource for LiveSupervisorMode...");
 	imgSource1_.stop();
+	imgSource2_.stop();
 	LOG_TRACE("Stopping Sink for LiveSupervisorMode...");
 	sink_.stop();
 }
@@ -140,7 +145,7 @@ void LiveSupervisorMode::handleCycle() {
 		}
 	);
 
-	for (auto& w : workers_) {
+	for (auto& w : workersSrc1_) {
 		LOG_TRACE("Checking worker status for LiveSupervisorMode cycle {}...", cycleId);
 		if (!w->isIdle()) {
 			LOG_TRACE("Worker is still busy for cycle {}, checking elapsed time...", cycleId);
@@ -159,7 +164,7 @@ void LiveSupervisorMode::handleCycle() {
 Worker* LiveSupervisorMode::acquireFreeWorker() {
 	// iterate over workers and return the first idle worker
 	LOG_TRACE("Acquiring free worker for LiveSupervisorMode cycle {}...", cycleCount_);
-	for (auto& w : workers_) {
+	for (auto& w : workersSrc1_) {
 		if (w->isIdle()) {
 			LOG_TRACE("Found free worker for LiveSupervisorMode cycle {}.", cycleCount_);
 			return w.get();

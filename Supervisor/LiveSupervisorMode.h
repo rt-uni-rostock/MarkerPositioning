@@ -16,6 +16,7 @@ public:
     
     explicit LiveSupervisorMode(
         IImageSource& imgSource1,
+		IImageSource& imgSource2,
         DetectionPipeline& pipeline,
 		Sink& sink,
         const MainSettings& settings
@@ -32,13 +33,15 @@ private:
     
 
     IImageSource& imgSource1_;
+	IImageSource& imgSource2_;
     DetectionPipeline& pipeline_;
 	Sink& sink_;
 	const MainSettings& settings_;
 
     std::chrono::milliseconds intervalMS_{ 0 };
 
-	std::vector<std::unique_ptr<Worker>> workers_;
+	std::vector<std::unique_ptr<Worker>> workersSrc1_;
+	std::vector<std::unique_ptr<Worker>> workersSrc2_;
 
     std::atomic<bool> running_{ false };
 	std::thread supervisorThread_;
