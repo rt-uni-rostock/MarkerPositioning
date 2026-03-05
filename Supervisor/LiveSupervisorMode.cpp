@@ -149,8 +149,11 @@ void LiveSupervisorMode::handleCycle() {
 		},
 		[this, cycleId](const std::string& err) {
 			LOG_ERROR("Worker failed for cycle {}, error: {}", cycleId, err);
-			//sink_sendError("Cycle " + std::to_string(cycleId) + ": " err);
-			// TODO: send error via sink
+
+			PipelineResult pipelineResult;
+			pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), std::chrono::system_clock::now());
+			pipelineResult.errorCode = 1;
+			pipelineResult.errorMessage = err;
 		}
 	);
 
