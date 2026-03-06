@@ -30,6 +30,7 @@ private:
     void supervisorLoop();
     void handleCycle();
 	Worker* acquireFreeWorker();
+	bool isWorkerWithinDeadline(Worker* worker, uint64_t cycleId);
     
 
     IImageSource& imgSource1_;

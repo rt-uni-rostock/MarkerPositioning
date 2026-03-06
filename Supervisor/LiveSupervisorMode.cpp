@@ -93,6 +93,7 @@ void LiveSupervisorMode::supervisorLoop() {
 	}
 }
 
+// handles one cycle of supervisor loop, if interval exceeds time throw error
 void LiveSupervisorMode::handleCycle() {
 
 	LOG_TRACE("Handling LiveSupervisorMode cycle {}, acquiring free worker...", cycleCount_);
@@ -123,13 +124,21 @@ void LiveSupervisorMode::handleCycle() {
 	// id of current cycle, used for logging and error handling
 	auto cycleId = cycleCount_;
 
-	// for each worker start thread
+	// start pipeline execution for worker
 	LOG_TRACE("Starting worker for LiveSupervisorMode cycle {}...", cycleId);
 	worker->start(
 		cycleId,
-		[this, cycleId](const DetectionResult result) {
+		[this, cycleId, worker](const DetectionResult result) {
 			LOG_INFO("Worker completed successfully for cycle {}, result: {}", cycleId, result.markerId);
 			
+			bool withinDeadline = isWorkerWithinDeadline(worker, cycleId);
+
+			std::string message = "";
+			if (!result.success) 
+				message += "Detection failed for cycle " + std::to_string(cycleId) + ".";
+			if (!withinDeadline) 
+				message += " Worker missed deadline for cycle " + std::to_string(cycleId) + ".";
+
 			PipelineResult pipelineResult;
 			pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), result.timestamp);
 			pipelineResult.markerId = result.markerId;
@@ -157,20 +166,6 @@ void LiveSupervisorMode::handleCycle() {
 			sink_.send(pipelineResult);
 		}
 	);
-
-	for (auto& w : workersSrc1_) {
-		LOG_TRACE("Checking worker status for LiveSupervisorMode cycle {}...", cycleId);
-		if (!w->isIdle()) {
-			LOG_TRACE("Worker is still busy for cycle {}, checking elapsed time...", cycleId);
-			auto elapsed = std::chrono::steady_clock::now() - w->startTime();
-			if (elapsed > std::chrono::milliseconds(intervalMS_)) {
-				auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
-				LOG_ERROR("Worker deadline exceeded for cycle {}, elapsed time: {} ms", cycleId, elapsedMs);
-				//sink_sendError("Worker deadline exceeded");
-				// TODO: send error via sink
-			}
-		}
-	}
 }
 
 // helper method to acquire a free worker, returns nullptr if no worker is available
@@ -185,4 +180,17 @@ Worker* LiveSupervisorMode::acquireFreeWorker() {
 	}
 	LOG_WARN("No free worker found for LiveSupervisorMode cycle {}.", cycleCount_);
 	return nullptr;
+}
+
+// after successful worker execution, check whether the worker is within the deadline
+bool LiveSupervisorMode::isWorkerWithinDeadline(Worker* worker, uint64_t cycleId) {
+	LOG_TRACE("Checking worker execution time for LiveSupervisorMode cycle {} ...", cycleId);
+	auto elapsed = std::chrono::steady_clock::now() - worker->startTime();
+	if (elapsed > std::chrono::milliseconds(intervalMS_)) {
+		auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+		LOG_ERROR("Worker deadline exceeded for cycle {}, elapsed time: {} ms", cycleCount_, elapsedMs);
+		return false;
+	}
+	LOG_TRACE("Worker completed within deadline for LiveSupervisorMode cycle {}, elapsed time: {} ms", cycleId, std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+	return true;
 }
