@@ -14,8 +14,8 @@ public:
 	// Destructor: cleans up the main threads
 	~StaticImageSource();
 
-	void start() override;
-	void stop() override;
+	bool start() override;
+	bool stop() override;
 
 	ImageFrame getLatestFrame() override;
 

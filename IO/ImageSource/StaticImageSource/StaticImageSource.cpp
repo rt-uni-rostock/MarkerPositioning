@@ -19,29 +19,33 @@ StaticImageSource::~StaticImageSource()
 	}
 }
 
-void StaticImageSource::start()
+bool StaticImageSource::start()
 {
 	LOG_TRACE("Starting StaticImageSource...");
 	if (running_) 
 	{
 		LOG_WARN("StaticImageSource is already running, start() call ignored");
-		return; // already running
+		return false; // already running
 	}
 	LOG_TRACE("StaticImageSource is starting.");
 	running_ = true;
+
+	return false;
 }
 
-void StaticImageSource::stop()
+bool StaticImageSource::stop()
 {
 	LOG_TRACE("Stopping StaticImageSource...");
 
 	if (!running_) 
 	{
 		LOG_WARN("StaticImageSource is not running, stop() call ignored");
-		return; // already stopped
+		return false; // already stopped
 	}
 
 	running_ = false;
+
+	return false;
 }
 
 ImageFrame StaticImageSource::getLatestFrame()

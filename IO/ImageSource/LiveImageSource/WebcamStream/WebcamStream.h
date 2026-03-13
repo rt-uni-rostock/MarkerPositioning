@@ -13,8 +13,8 @@ public:
 	WebcamStream(const ImageSourceConfig& settings);
 	~WebcamStream();
 
-	void open() override;
-	void close() override;
+	bool open() override;
+	bool close() override;
 
 	ImageFrame getFrame() override;
 

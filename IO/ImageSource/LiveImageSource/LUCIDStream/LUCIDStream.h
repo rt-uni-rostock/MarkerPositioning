@@ -11,8 +11,8 @@ public:
 	LUCIDStream(const ImageSourceConfig& settings);
 	~LUCIDStream();
 
-	void open() override;
-	void close() override;
+	bool open() override;
+	bool close() override;
 
 	ImageFrame getFrame() override;
 private:

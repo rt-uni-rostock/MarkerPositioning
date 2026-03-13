@@ -22,8 +22,8 @@ public:
         const MainSettings& settings
     );
 
-    void start() override;
-    void stop() override;
+    bool start() override;
+    bool stop() override;
 	//void increaseNextRunAndStop();
 	//void logCurrentTime();
 private:

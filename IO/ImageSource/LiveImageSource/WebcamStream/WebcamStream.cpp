@@ -21,24 +21,35 @@ WebcamStream::~WebcamStream()
 	LOG_TRACE("WebcamStream is being destroyed.");
 }
 
-void WebcamStream::open()
+bool WebcamStream::open()
 {
 	LOG_TRACE("Opening webcam stream...");
 	cap.open(0); // open default camera
 	if (!cap.isOpened())
 	{
 		LOG_ERROR("Could not open webcam stream");
+		return false;
 	}
 	else
 	{
 		LOG_TRACE("Webcam stream opened successfully");
+		return true;
 	}
 }
 
-void WebcamStream::close()
+bool WebcamStream::close()
 {
 	LOG_TRACE("WebcamStream is being destroyed, releasing video capture if open");
-	cap.release();
+
+	try {
+		cap.release();
+	}
+	catch (...) {
+		LOG_ERROR("Exception occurred while releasing video capture in WebcamStream close()");
+		return false;
+	}
+
+	return true;
 }
 
 ImageFrame WebcamStream::getFrame()

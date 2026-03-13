@@ -24,6 +24,10 @@ StaticSupervisorMode::StaticSupervisorMode(
 {
 }
 
-void StaticSupervisorMode::start() {}
+bool StaticSupervisorMode::start() {
+	return false;
+}
 
-void StaticSupervisorMode::stop() {}
+bool StaticSupervisorMode::stop() {
+	return false;
+}

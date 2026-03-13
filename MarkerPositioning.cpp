@@ -184,17 +184,24 @@ int main()
 		LOG_INFO("Supervisor successfully initialized.");
 		LOG_INFO("Starting Supervisor...");
 
-        supervisor.start();
+        bool supervisorStartedSuccessfully = supervisor.start();
 
-		LOG_INFO("Supervisor started successfully.");
-		LOG_INFO("Application is running. Press Ctrl+C to shut down...");
-        
-        waitForShutdownSignal();
+        if (supervisorStartedSuccessfully) {
+            LOG_INFO("Supervisor started successfully.");
+            LOG_INFO("Application is running. Press Ctrl+C to shut down...");
 
-		LOG_INFO("Shutdown signal received, stopping Supervisor...");
+            waitForShutdownSignal();
 
-        // TODO: warum supervisor stop bevor sink?
-        supervisor.stop();
+            LOG_INFO("Shutdown signal received, stopping Supervisor...");
+
+            // TODO: warum supervisor stop bevor sink?
+            bool supervisorStopped = supervisor.stop();
+        }
+        else {
+			LOG_CRITICAL("Failed to start Supervisor, shutting down application.");
+        }
+
+		
 
 		/*LOG_INFO("Supervisor stopped successfully.");
 

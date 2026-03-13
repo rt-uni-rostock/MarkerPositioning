@@ -31,40 +31,71 @@ Sink::~Sink()
 }
 
 // start the worker threads for udp sending and logging, they will run until stop() is called
-void Sink::start()
+bool Sink::start()
 {
 	LOG_TRACE("Starting Sink worker threads...");
 	running_ = true;
 	if (config_.udpEnabled) {
-		udpThread_ = std::thread(&Sink::udpWorkerLoop, this);
-		LOG_TRACE("UDP worker thread started.");
+		try {
+			udpThread_ = std::thread(&Sink::udpWorkerLoop, this);
+			LOG_TRACE("UDP worker thread started.");
+		}
+		catch (...) {
+			LOG_ERROR("Failed to start UDP worker thread.");
+			return false;
+		}
 	}
 	if (config_.loggingEnabled) {
-		loggingThread_ = std::thread(&Sink::loggingWorkerLoop, this);
-		LOG_TRACE("Logging worker thread started.");
+		try {
+			loggingThread_ = std::thread(&Sink::loggingWorkerLoop, this);
+			LOG_TRACE("Logging worker thread started.");
+		}
+		catch (...) {
+			LOG_ERROR("Failed to start logging worker thread.");
+			return false;
+		}
 	}
+	return true;
 }
 
 // stop worker threads, notify them to wake up if they are waiting, and join them to ensure clean shutdown
-void Sink::stop()
+bool Sink::stop()
 {
 	LOG_TRACE("Stopping Sink worker threads...");
 	running_ = false;
+
+	bool success = true;
 	
 	// notify logging thread in case it's waiting for new events, this will allow it to exit if we are shutting down
 	loggingCv_.notify_all();
 	LOG_TRACE("Notified logging thread to wake up for shutdown.");
 
 	if (udpThread_.joinable()) {
-		udpThread_.join();
-		LOG_TRACE("UDP worker thread joined successfully.");
+		try {
+			LOG_TRACE("Joining UDP worker thread...");
+			udpThread_.join();
+			LOG_TRACE("UDP worker thread joined successfully.");
+		}
+		catch (...) {
+			LOG_ERROR("Unknown exception occurred while joining UDP worker thread.");
+			success = false;
+		}
 	}
 
 	if (loggingThread_.joinable()) {
 		loggingCv_.notify_all();
-		loggingThread_.join();
-		LOG_TRACE("Logging worker thread joined successfully.");
+		try {
+			LOG_TRACE("Joining logging worker thread...");
+			loggingThread_.join();
+			LOG_TRACE("Logging worker thread joined successfully.");
+		}
+		catch (...) {
+			LOG_ERROR("Unknown exception occurred while joining logging worker thread.");
+			success = false;
+		}
 	}
+
+	return success;
 }
 
 // send a pipeline result to both the udp publisher and the logger, if they are enabled in the config

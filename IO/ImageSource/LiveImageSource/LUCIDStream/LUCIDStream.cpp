@@ -10,12 +10,14 @@ LUCIDStream::~LUCIDStream() {
 	//Arena::CloseSystem(pSystem);
 }
 
-void LUCIDStream::open() {
+bool LUCIDStream::open() {
 	// Implement the logic to open the connection to the LUCID camera
+	return false;
 }
 
-void LUCIDStream::close() {
+bool LUCIDStream::close() {
 	// Implement the logic to close the connection to the LUCID camera
+	return false;
 }
 
 ImageFrame LUCIDStream::getFrame() {

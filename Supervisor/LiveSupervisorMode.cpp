@@ -36,31 +36,58 @@ LiveSupervisorMode::LiveSupervisorMode(
 
 // starts the supervisor thread, which runs the main loop for the live supervisor mode
 // also starts the image source, which runs in its own thread and provides frames for the pipeline
-void LiveSupervisorMode::start() {
+bool LiveSupervisorMode::start() {
+	
 	LOG_TRACE("Starting ImageSource for LiveSupervisorMode...");
-	imgSource1_.start();
-	imgSource2_.start();
+	
+	if (!imgSource1_.start()) {
+		LOG_ERROR("Failed to start ImageSource 1 for LiveSupervisorMode");
+		return false;
+	}
+	
+	if (!imgSource2_.start()) {
+		LOG_ERROR("Failed to start ImageSource 2 for LiveSupervisorMode");
+		imgSource1_.stop(); // stop the first source if the second fails to start
+		return false;
+	}
+
 	LOG_TRACE("Starting Sink for LiveSupervisorMode...");
-	sink_.start();
+	// TODO start
+	if (!sink_.start()) {
+		LOG_ERROR("Failed to start Sink for LiveSupervisorMode");
+		imgSource1_.stop();
+		imgSource2_.stop();
+		return false;
+	}
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");
 	running_ = true;
 	supervisorThread_ = std::thread(&LiveSupervisorMode::supervisorLoop, this);
+	return true;
 }
 
 // stops the supervisor thread and waits for it to finish
 // also stops the image source, which will stop providing frames for the pipeline
-void LiveSupervisorMode::stop() {
+bool LiveSupervisorMode::stop() {
 	LOG_TRACE("Stopping LiveSupervisorMode supervisor thread...");
+	bool success = true;
 	running_ = false;
 	if (supervisorThread_.joinable()) {
 		LOG_TRACE("Joining LiveSupervisorMode supervisor thread...");
-		supervisorThread_.join();
+		try {
+			supervisorThread_.join();
+			LOG_TRACE("LiveSupervisorMode supervisor thread joined successfully.");
+		}
+		catch (...) {
+			LOG_ERROR("Exception occurred while joining LiveSupervisorMode supervisor thread.");
+			success = false;
+		}
 	}
-	LOG_TRACE("Stopping ImageSource for LiveSupervisorMode...");
-	imgSource1_.stop();
-	imgSource2_.stop();
-	LOG_TRACE("Stopping Sink for LiveSupervisorMode...");
-	sink_.stop();
+
+	LOG_TRACE("Stopping ImageSource and Sink for LiveSupervisorMode...");
+	success = success && imgSource1_.stop() && imgSource2_.stop() && sink_.stop();
+
+	return success;
+
 }
 
 void LiveSupervisorMode::supervisorLoop() {

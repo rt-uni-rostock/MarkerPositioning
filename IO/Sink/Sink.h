@@ -24,8 +24,8 @@ public:
 	~Sink();
 
 	// start and stop the worker threads, they will run until stop() is called
-	void start();
-	void stop();
+	bool start();
+	bool stop();
 
 	// main send method, can be called by supervisor to send pipeline results to sink
 	void send(const PipelineResult& result);

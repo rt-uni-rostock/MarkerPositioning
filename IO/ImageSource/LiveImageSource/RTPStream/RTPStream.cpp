@@ -25,7 +25,7 @@ RTPStream::~RTPStream()
 	LOG_TRACE("RTPStream is being destroyed.");
 }
 
-void RTPStream::open()
+bool RTPStream::open()
 {
 	LOG_TRACE("Opening Gstreamer RTP stream...");
 
@@ -37,17 +37,27 @@ void RTPStream::open()
 	if (!cap.isOpened())
 	{
 		LOG_ERROR("Could not open RTP stream");
+		return false;
 	}
 	else
 	{
 		LOG_TRACE("RTP stream opened successfully");
+		return true;
 	}
 }
 
-void RTPStream::close()
+bool RTPStream::close()
 {
 	LOG_TRACE("RTPStream is being destroyed, releasing video capture if open");
-	cap.release();
+	try {
+		cap.release();
+	}
+	catch (...) {
+		LOG_ERROR("Exception occurred while releasing video capture in RTPStream close().");
+		return false;
+	}
+
+	return true;
 }
 
 ImageFrame RTPStream::getFrame()

@@ -13,8 +13,8 @@ public:
 	RTPStream(const ImageSourceConfig& settings);
 	~RTPStream();
 
-	void open() override;
-	void close() override;
+	bool open() override;
+	bool close() override;
 
 	ImageFrame getFrame() override;
 

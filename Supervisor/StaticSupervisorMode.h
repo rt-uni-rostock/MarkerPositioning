@@ -16,8 +16,8 @@ public:
 		const MainSettings& settings
     );
 
-    void start() override;
-	void stop() override;
+    bool start() override;
+	bool stop() override;
 private:
 	ImageSourceFactory& imgSource_;
     DetectionPipeline& pipeline_;

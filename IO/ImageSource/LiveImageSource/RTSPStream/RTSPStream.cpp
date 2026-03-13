@@ -25,7 +25,7 @@ RTSPStream::~RTSPStream()
 	LOG_TRACE("RTPStream is being destroyed.");
 }
 
-void RTSPStream::open()
+bool RTSPStream::open()
 {
 	LOG_TRACE("Opening RTSP stream...");
 
@@ -34,17 +34,28 @@ void RTSPStream::open()
 	if (!cap.isOpened())
 	{
 		LOG_ERROR("Could not open RTSP stream.");
+		return false;
 	}
 	else
 	{
 		LOG_TRACE("RTSP stream opened successfully.");
+		return true;
 	}
 }
 
-void RTSPStream::close()
+bool RTSPStream::close()
 {
 	LOG_TRACE("RTSPStream is being destroyed, releasing video capture if opens");
-	cap.release();
+
+	try {
+		cap.release();
+	}
+	catch (...) {
+		LOG_ERROR("Exception occurred while releasing video capture in RTSPStream close()");
+		return false;
+	}
+
+	return true;
 }
 
 ImageFrame RTSPStream::getFrame()

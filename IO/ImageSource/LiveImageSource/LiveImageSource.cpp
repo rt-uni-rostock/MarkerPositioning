@@ -19,32 +19,38 @@ LiveImageSource::~LiveImageSource()
 	}
 }
 
-void LiveImageSource::start()
+bool LiveImageSource::start()
 {
 	LOG_TRACE("Starting LiveImageSource...");
 	if (running_) 
 	{
 		LOG_WARN("LiveImageSource is already running, start() call ignored");
-		return; // already running
+		return false; // already running
 	}
 
 	LOG_TRACE("Opening video stream...");
-	stream_->open();
+	if (!stream_->open()) {
+		LOG_ERROR("Failed to open video stream in LiveImageSource");
+		return false;
+	}
+
 	running_ = true;
 
 	// Start capture loop in a separate thread
 	LOG_TRACE("Starting capture thread...");
 	captureThread_ = std::thread(&LiveImageSource::captureLoop, this);
+
+	return true;
 }
 
-void LiveImageSource::stop()
+bool LiveImageSource::stop()
 {
 	LOG_TRACE("Stopping LiveImageSource...");
 
 	if (!running_) 
 	{
 		LOG_WARN("LiveImageSource is not running, stop() call ignored");
-		return; // already stopped
+		return false; // already stopped
 	}
 
 	running_ = false;
@@ -56,8 +62,13 @@ void LiveImageSource::stop()
 		LOG_TRACE("Capture thread stopped successfully");
 	}
 	
-	stream_->close();
+	if (!stream_->close()) {
+		LOG_ERROR("Failed to close video stream in LiveImageSource");
+		return false;
+	}
+
 	LOG_TRACE("Video stream closed successfully");
+	return true;
 }
 
 ImageFrame LiveImageSource::getLatestFrame()
