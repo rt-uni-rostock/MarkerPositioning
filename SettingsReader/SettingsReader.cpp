@@ -11,29 +11,72 @@
 using json = nlohmann::json;
 
 
+/// <summary>
+/// Convert CameraSettings to json, used for saving settings to file
+/// </summary>
+/// <param name="j">JSON Object</param>
+/// <param name="c">Serialized CameraSettings object</param>
+void to_json(json& j, const CameraSettings& c)
+{
+	j = json{
+		{"id", c.id},
+		{"streamType", static_cast<int>(c.streamType)},
+		{"name", c.name},
+		{"url", c.url},
+		{"pipeline", c .pipeline},
+		{"fx", c.fx},
+		{"fy", c.fy},
+		{"cx", c.cx},
+		{"cy", c.cy},
+		{"d1", c.d1},
+		{"d2", c.d2},
+		{"d3", c.d3},
+		{"d4", c.d4},
+		{"d5", c.d5},
+		{"active", c.active}
+	};
+}
+
+/// <summary>
+/// deserializes json object to CameraSettings, used for loading settings from file
+/// </summary>
+/// <param name="j">JSON object, containing camera settings</param>
+/// <param name="c">CameraSettings object</param>
+void from_json(const json& j, CameraSettings& c)
+{
+	c.id = j.value("id", c.id);
+	c.streamType = static_cast<StreamType>(j.value("streamType", static_cast<int>(c.streamType)));
+	c.url = j.value("url", c.url);
+	c.pipeline = j.value("pipeline", c.pipeline);
+	c.fx = j.value("fx", c.fx);
+	c.fy = j.value("fy", c.fy);
+	c.cx = j.value("cx", c.cx);
+	c.cy = j.value("cy", c.cy);
+	c.d1 = j.value("d1", c.d1);
+	c.d2 = j.value("d2", c.d2);
+	c.d3 = j.value("d3", c.d3);
+	c.d4 = j.value("d4", c.d4);
+	c.d5 = j.value("d5", c.d5);
+	c.active = j.value("active", c.active);
+}
+
+/// <summary>
+/// Convert MainSettings to json, used for saving settings to file
+/// </summary>
+/// <param name="j">JSON Object</param>
+/// <param name="s">Serialized MainSettings object</param>
 void to_json(json& j, const MainSettings& s)
 {
 	j = json{
 		{"sourceMode", static_cast<int>(s.sourceMode)},
-		{"streamType", static_cast<int>(s.streamType)},
 		{"tagType", static_cast<int>(s.tagType)},
 		{"tagSize", s.tagSize},
 		{"tagID", s.tagID},
-		{"fx", s.fx},
-		{"fy", s.fy},
-		{"cx", s.cx},
-		{"cy", s.cy},
-		{"d1", s.d1},
-		{"d2", s.d2},
-		{"d3", s.d3},
-		{"d4", s.d4},
-		{"d5", s.d5},
 		{"quadDecimate", s.quadDecimate},
-		{"rtspUrl", s.imgSrc1Url},
 		{"udpIp", s.udpIp},
 		{"udpPort", s.udpPort},
 		{"frameRate", s.frameRate},
-		{"streamId", s.streamId }
+		{"cameras", s.cameras}
 	};
 }
 
@@ -42,31 +85,19 @@ void from_json(const json& j, MainSettings& s)
 	// Defaults are already initialized in struct
 
 	s.sourceMode = static_cast<SourceMode>(j.value("sourceMode", s.sourceMode));
-	s.streamType = static_cast<StreamType>(j.value("streamType", s.streamType));
 	s.tagType = static_cast<TagType>(j.value("tagType", s.tagType));
 	s.tagSize = j.value("tagSize", s.tagSize);
 	s.tagID = j.value("tagID", s.tagID);
 
-	s.fx = j.value("fx", s.fx);
-	s.fy = j.value("fy", s.fy);
-	s.cx = j.value("cx", s.cx);
-	s.cy = j.value("cy", s.cy);
-
-	s.d1 = j.value("d1", s.d1);
-	s.d2 = j.value("d2", s.d2);
-	s.d3 = j.value("d3", s.d3);
-	s.d4 = j.value("d4", s.d4);
-	s.d5 = j.value("d5", s.d5);
-
 	s.quadDecimate = j.value("quadDecimate", s.quadDecimate);
 
-	s.imgSrc1Url = j.value("rtspUrl", s.imgSrc1Url);
 	s.udpIp = j.value("udpIp", s.udpIp);
 	s.udpPort = j.value("udpPort", s.udpPort);
 
 	s.frameRate = j.value("frameRate", s.frameRate);
 
-	s.streamId = j.value("streamId", s.streamId);
+	if (j.contains("cameras"))
+		s.cameras = j.at("cameras").get<std::vector<CameraSettings>>();
 }
 
 
@@ -80,12 +111,13 @@ SettingsReader::SettingsReader(const std::string& filename)
 	}
 	catch (const std::exception& e) {
 		LOG_ERROR("Error loading settings: {}. Creating default settings file...", e.what());
+		std::cout << "Error loading settings: " << e.what() << ". Creating default settings file..." << std::endl;
 
-		writeDefaultSettings(filename);
+		//writeDefaultSettings(filename);
 
 		// Try again after creating defaults
-		LOG_TRACE("Attempting to load settings from file again: {}", filename);
-		settings_ = loadSettings(filename);
+		//LOG_TRACE("Attempting to load settings from file again: {}", filename);
+		//settings_ = loadSettings(filename);
 	}
 }
 

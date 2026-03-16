@@ -94,9 +94,8 @@ int main()
         const MainSettings& settings = settingsReader.get();
 
         LOG_INFO("Settings loaded successfully.");
-        LOG_TRACE("Loaded settings: sourceMode={} streamType={}, tagType={}, tagSize={}, tagID={}, fx={}, fy={}, cx={}, cy={}, d1={}, d2={}, d3={}, d4={}, d5={}, quadDecimate={}, imgSrc1Url={}, imgSrc2Url={}, udpIp={}, udpPort={}, frameRate={}",
-            static_cast<int>(settings.sourceMode), static_cast<int>(settings.streamType), static_cast<int>(settings.tagType), settings.tagSize, settings.tagID, settings.fx, settings.fy, settings.cx,
-            settings.cy, settings.d1, settings.d2, settings.d3, settings.d4, settings.d5, settings.quadDecimate, settings.imgSrc1Url, settings.imgSrc2Url, settings.udpIp,
+        LOG_TRACE("Loaded settings: sourceMode={}, tagType={}, tagSize={}, tagID={}, quadDecimate={}, udpIp={}, udpPort={}, frameRate={}",
+            static_cast<int>(settings.sourceMode), static_cast<int>(settings.tagType), settings.tagSize, settings.tagID, settings.quadDecimate, settings.udpIp,
             settings.udpPort, settings.frameRate);
 
         //OLD: Start main threads manager, which handles all threads, including image receiving, detection, and UDP sending
@@ -105,10 +104,11 @@ int main()
         LOG_INFO("Initializing ImageSource 1...");
 
         ImageSourceConfig sourceConfig1;
+        CameraSettings cam1 = settings.cameras[2];
 		sourceConfig1.mode = settings.sourceMode;
-		sourceConfig1.type = settings.streamType;
-		sourceConfig1.srcUrl = settings.imgSrc1Url;
-		sourceConfig1.streamId = 0; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
+		sourceConfig1.type = cam1.streamType;
+		sourceConfig1.srcUrl = cam1.url;
+		sourceConfig1.streamId = cam1.id; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
         // TODO: static files path in settings
 		sourceConfig1.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
 		sourceConfig1.filePath = "C:/path/to/images"; // for recorded mode, path to image files
@@ -123,12 +123,13 @@ int main()
         LOG_INFO("Initializing ImageSource 2...");
 
         ImageSourceConfig sourceConfig2;
+        //CameraSettings cam1 = settings.cameras[2];
         sourceConfig2.mode = settings.sourceMode;
-        sourceConfig2.type = settings.streamType;
-        sourceConfig2.srcUrl = settings.imgSrc2Url;
-		sourceConfig2.streamId = 2; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
-        //// TODO: static files path in settings
-        // TODO: use path also for gstreamer?
+        sourceConfig2.type = cam1.streamType;
+        sourceConfig2.srcUrl = cam1.url;
+        sourceConfig2.streamId = cam1.id; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
+        // TODO: static files path in settings
+        sourceConfig2.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
         sourceConfig2.filePath = "C:/path/to/images"; // for recorded mode, path to image files
 
         LOG_INFO("Selecting ImageSource2 based on settings: mode={}, type={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.type));
@@ -141,15 +142,15 @@ int main()
         LOG_INFO("Initializing DetectionPipeline...");
 
         DetectionPipelineConfig pipelineConfig;
-		pipelineConfig.cx = settings.cx;
-		pipelineConfig.cy = settings.cy;
-		pipelineConfig.fx = settings.fx;
-		pipelineConfig.fy = settings.fy;
-		pipelineConfig.d1 = settings.d1;
-		pipelineConfig.d2 = settings.d2;
-		pipelineConfig.d3 = settings.d3;
-		pipelineConfig.d4 = settings.d4;
-		pipelineConfig.d5 = settings.d5;
+		pipelineConfig.cx = cam1.cx;
+		pipelineConfig.cy = cam1.cy;
+		pipelineConfig.fx = cam1.fx;
+		pipelineConfig.fy = cam1.fy;
+		pipelineConfig.d1 = cam1.d1;
+		pipelineConfig.d2 = cam1.d2;
+		pipelineConfig.d3 = cam1.d3;
+		pipelineConfig.d4 = cam1.d4;
+		pipelineConfig.d5 = cam1.d5;
 		pipelineConfig.tagSize = settings.tagSize;
 		pipelineConfig.tagID = settings.tagID;
 		pipelineConfig.quadDecimate = settings.quadDecimate;
