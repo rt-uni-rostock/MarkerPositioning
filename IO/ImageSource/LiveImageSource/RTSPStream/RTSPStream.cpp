@@ -9,8 +9,8 @@
 
 RTSPStream::RTSPStream(const ImageSourceConfig& config) : IVideoStream(config)
 {
-	LOG_TRACE("RTSPStream created with provided settings: rtspUrl={}",
-		config_.srcUrl);
+	LOG_TRACE("RTSPStream created with provided settings: url={}",
+		config_.cameraSettings.url);
 }
 
 RTSPStream::~RTSPStream()
@@ -29,7 +29,7 @@ bool RTSPStream::open()
 {
 	LOG_TRACE("Opening RTSP stream...");
 
-	cap.open(config_.srcUrl); //, cv::CAP_FFMPEG
+	cap.open(config_.cameraSettings.url); //, cv::CAP_FFMPEG
 
 	if (!cap.isOpened())
 	{

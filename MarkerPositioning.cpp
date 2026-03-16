@@ -107,14 +107,10 @@ int main()
         ImageSourceConfig sourceConfig1;
         CameraSettings cam1 = settings.cameras[2];
 		sourceConfig1.mode = settings.sourceMode;
-		sourceConfig1.type = cam1.streamType;
-		sourceConfig1.srcUrl = cam1.url;
-		sourceConfig1.streamId = cam1.id; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
-        // TODO: static files path in settings
+		sourceConfig1.cameraSettings = cam1;
 		sourceConfig1.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
-		sourceConfig1.filePath = "C:/path/to/images"; // for recorded mode, path to image files
         
-		LOG_INFO("Selecting ImageSource1 based on settings: mode={}, type={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.type));
+		LOG_INFO("Selecting ImageSource1 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.cameraSettings.streamType));
 
         ImageSourceFactory source1(sourceConfig1);
 		auto imgSource1 = source1.create();
@@ -126,14 +122,10 @@ int main()
         ImageSourceConfig sourceConfig2;
         //CameraSettings cam1 = settings.cameras[2];
         sourceConfig2.mode = settings.sourceMode;
-        sourceConfig2.type = cam1.streamType;
-        sourceConfig2.srcUrl = cam1.url;
-        sourceConfig2.streamId = cam1.id; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
-        // TODO: static files path in settings
+		sourceConfig2.cameraSettings = cam1;
         sourceConfig2.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
-        sourceConfig2.filePath = "C:/path/to/images"; // for recorded mode, path to image files
 
-        LOG_INFO("Selecting ImageSource2 based on settings: mode={}, type={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.type));
+        LOG_INFO("Selecting ImageSource2 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.cameraSettings.streamType));
 
         ImageSourceFactory source2(sourceConfig2);
         auto imgSource2 = source2.create();
