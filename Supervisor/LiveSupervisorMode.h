@@ -9,7 +9,7 @@ class IImageSource;
 class DetectionPipeline;
 class Sink;
 class Worker;
-struct MainSettings;
+struct GeneralSettings;
 
 class LiveSupervisorMode : public ISupervisorMode {
 public:
@@ -19,7 +19,7 @@ public:
 		IImageSource& imgSource2,
         DetectionPipeline& pipeline,
 		Sink& sink,
-        const MainSettings& settings
+        const GeneralSettings& settings
     );
 
     bool start() override;
@@ -37,7 +37,7 @@ private:
 	IImageSource& imgSource2_;
     DetectionPipeline& pipeline_;
 	Sink& sink_;
-	const MainSettings& settings_;
+	const GeneralSettings& settings_;
 
     std::chrono::milliseconds intervalMS_{ 0 };
 

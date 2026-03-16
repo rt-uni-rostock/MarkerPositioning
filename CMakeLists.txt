@@ -117,7 +117,8 @@ target_include_directories(nlohmann_json INTERFACE
 add_library(CoreTypes INTERFACE)
 
 target_include_directories(CoreTypes INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/CoreTypes
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Enums
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Structs
 )
 
 # =============================================================

@@ -8,7 +8,7 @@
 #include "CameraSettings.h"
 
 // settings structure for file
-struct MainSettings {
+struct GeneralSettings {
 	SourceMode sourceMode = SourceMode::Live; 				// Modus der Bildquelle (0=Live, 1=Recorded)
 	TagType tagType = TagType::AprilTag;					// Art des Fiducial Markers (0=AprilTag, 1=ArUco)
 	// Tag Family?

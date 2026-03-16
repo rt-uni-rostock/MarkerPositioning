@@ -5,7 +5,7 @@
 class ImageSourceFactory;
 class DetectionPipeline;
 class Sink;
-struct MainSettings;
+struct GeneralSettings;
 
 class StaticSupervisorMode : public ISupervisorMode {
 public:
@@ -13,7 +13,7 @@ public:
 		ImageSourceFactory& imgSource,
         DetectionPipeline& pipeline,
 		Sink& sink,
-		const MainSettings& settings
+		const GeneralSettings& settings
     );
 
     bool start() override;

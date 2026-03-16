@@ -7,6 +7,7 @@
 #include "SourceModeEnum.h"
 #include "StreamTypeEnum.h"
 #include "TagTypeEnum.h"
+#include "GeneralSettings.h"
 
 using json = nlohmann::json;
 
@@ -65,7 +66,7 @@ void from_json(const json& j, CameraSettings& c)
 /// </summary>
 /// <param name="j">JSON Object</param>
 /// <param name="s">Serialized MainSettings object</param>
-void to_json(json& j, const MainSettings& s)
+void to_json(json& j, const GeneralSettings& s)
 {
 	j = json{
 		{"sourceMode", static_cast<int>(s.sourceMode)},
@@ -80,7 +81,7 @@ void to_json(json& j, const MainSettings& s)
 	};
 }
 
-void from_json(const json& j, MainSettings& s)
+void from_json(const json& j, GeneralSettings& s)
 {
 	// Defaults are already initialized in struct
 
@@ -121,14 +122,14 @@ SettingsReader::SettingsReader(const std::string& filename)
 	}
 }
 
-const MainSettings& SettingsReader::get() const
+const GeneralSettings& SettingsReader::get() const
 {
 	LOG_TRACE("Returning settings.");
 	return settings_;
 }
 
 // load settings from file
-MainSettings SettingsReader::loadSettings(const std::string& filename)
+GeneralSettings SettingsReader::loadSettings(const std::string& filename)
 {
 	LOG_TRACE("Loading settings from file.");
 	// try to open file
@@ -143,14 +144,14 @@ MainSettings SettingsReader::loadSettings(const std::string& filename)
 	f >> j;
 
 	LOG_TRACE("Settings loaded from file: {}", filename);
-	return j.get<MainSettings>();
+	return j.get<GeneralSettings>();
 }
 
 // write default settings to file
 void SettingsReader::writeDefaultSettings(const std::string& filename)
 {
 	LOG_TRACE("Writing default settings to file: {}", filename);
-	MainSettings defaultSettings;  // defaults from struct
+	GeneralSettings defaultSettings;  // defaults from struct
 
 	json j = defaultSettings;
 

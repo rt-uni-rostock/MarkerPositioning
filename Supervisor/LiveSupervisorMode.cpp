@@ -2,10 +2,10 @@
 #include "DetectionPipeline.h"
 #include "ImageSource/IImageSource.h"
 #include "Sink.h"
-#include "MainSettings.h"
 #include "Worker.h"
 #include "DetectionResult.h"
 #include "Logger.h"
+#include "GeneralSettings.h"
 #include <cmath>
 #include <iostream>
 
@@ -20,7 +20,7 @@ LiveSupervisorMode::LiveSupervisorMode(
 	IImageSource& imgSource2,
     DetectionPipeline& pipeline,
 	Sink& sink,
-    const MainSettings& settings
+    const GeneralSettings& settings
 ) : imgSource1_(imgSource1), imgSource2_(imgSource2), pipeline_(pipeline), sink_(sink), settings_(settings)
 {
 	// create workers for the pipeline

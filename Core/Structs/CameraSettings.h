@@ -6,10 +6,10 @@
 // settings structure for file
 struct CameraSettings {
 	int id = 0;						// unique camera id
-	
+
 	StreamType streamType = StreamType::WEBCAM; // type of stream (0=NONE, 1=LUCID, 2=RTP, 3=RTSP, 4=Webcam)
 	std::string name = "";						// human-readable name for the camera, used for logging and debugging
-	
+
 	std::string url = "";						// for stream: RTSP/RTP URL, for recorded mode: path to image files
 	std::string pipeline = "";					// for stream: gstreamer pipeline string
 

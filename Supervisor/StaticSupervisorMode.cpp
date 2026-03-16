@@ -2,7 +2,7 @@
 #include "ImageSource/ImageSourceFactory.h"
 #include "DetectionPipeline.h"
 #include "Sink/Sink.h"
-#include "MainSettings.h"
+#include "GeneralSettings.h"
 
 //#include "StaticSupervisorMode.h"
 //#include "ImageSourceFactory.h"
@@ -19,7 +19,7 @@ StaticSupervisorMode::StaticSupervisorMode(
 	ImageSourceFactory& imgSource,
 	DetectionPipeline& pipeline,
 	Sink& sink,
-	const MainSettings& settings
+	const GeneralSettings& settings
 ) : imgSource_(imgSource), pipeline_(pipeline), sink_(sink)
 {
 }

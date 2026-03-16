@@ -12,6 +12,7 @@
 #include "Sink.h"
 #include "SinkConfig.h"
 #include "PipelineResult.h"
+#include "GeneralSettings.h"
 
 // shutdown includes
 #include <atomic>
@@ -91,7 +92,7 @@ int main()
 
         // Load settings from JSON file
         SettingsReader settingsReader("Settings.json");
-        const MainSettings& settings = settingsReader.get();
+        const GeneralSettings& settings = settingsReader.get();
 
         LOG_INFO("Settings loaded successfully.");
         LOG_TRACE("Loaded settings: sourceMode={}, tagType={}, tagSize={}, tagID={}, quadDecimate={}, udpIp={}, udpPort={}, frameRate={}",
