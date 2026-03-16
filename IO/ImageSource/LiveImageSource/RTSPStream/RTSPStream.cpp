@@ -7,10 +7,10 @@
 #include <spdlog/fmt/bundled/format.h>
 #include <spdlog/fmt/chrono.h>
 
-RTSPStream::RTSPStream(const ImageSourceConfig& settings) : settings_(settings)
+RTSPStream::RTSPStream(const ImageSourceConfig& config) : IVideoStream(config)
 {
 	LOG_TRACE("RTSPStream created with provided settings: rtspUrl={}",
-		settings.srcUrl);
+		config_.srcUrl);
 }
 
 RTSPStream::~RTSPStream()
@@ -29,7 +29,7 @@ bool RTSPStream::open()
 {
 	LOG_TRACE("Opening RTSP stream...");
 
-	cap.open(settings_.srcUrl); //, cv::CAP_FFMPEG
+	cap.open(config_.srcUrl); //, cv::CAP_FFMPEG
 
 	if (!cap.isOpened())
 	{

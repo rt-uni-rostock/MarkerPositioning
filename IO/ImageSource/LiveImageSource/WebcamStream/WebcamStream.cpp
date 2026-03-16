@@ -3,10 +3,10 @@
 #include "ImageSource/ImageFrame.h"
 #include "ImageSource/ImageSourceConfig.h"
 
-WebcamStream::WebcamStream(const ImageSourceConfig& settings) : settings_(settings)
+WebcamStream::WebcamStream(const ImageSourceConfig& config) : IVideoStream(config)
 {
 	LOG_TRACE("WebcamStream created with provided settings: rtspUrl={}",
-		settings.srcUrl);
+		config_.srcUrl);
 }
 
 WebcamStream::~WebcamStream()
@@ -32,6 +32,9 @@ bool WebcamStream::open()
 	}
 	else
 	{
+		// camera scaled down to 640x480 to reduce CPU load, here explicit setting to 1920x1080
+		cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+		cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
 		LOG_TRACE("Webcam stream opened successfully");
 		return true;
 	}
@@ -61,10 +64,10 @@ ImageFrame WebcamStream::getFrame()
 		return ImageFrame{ cv::Mat(), std::chrono::system_clock::now() };
 	}
 	cv::Mat frame;
-	cap >> frame; // capture a new frame from the webcam
-	if (frame.empty())
+	//cap >> frame; // capture a new frame from the webcam
+	if (!cap.read(frame))
 	{
-		LOG_ERROR("Captured empty frame from webcam stream");
+		LOG_WARN("Captured empty frame from webcam stream");
 		return ImageFrame{ cv::Mat(), std::chrono::system_clock::now() };
 	}
 	LOG_TRACE("Successfully captured a new frame from webcam stream");

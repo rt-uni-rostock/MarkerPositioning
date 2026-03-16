@@ -10,7 +10,7 @@ struct ImageSourceConfig;
 class WebcamStream : public IVideoStream
 {
 public:
-	WebcamStream(const ImageSourceConfig& settings);
+	explicit WebcamStream(const ImageSourceConfig& config);
 	~WebcamStream();
 
 	bool open() override;
@@ -19,7 +19,6 @@ public:
 	ImageFrame getFrame() override;
 
 private:
-	const ImageSourceConfig& settings_;
 
 	cv::VideoCapture cap;
 

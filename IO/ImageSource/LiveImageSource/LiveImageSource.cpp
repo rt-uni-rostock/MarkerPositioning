@@ -88,12 +88,54 @@ ImageFrame LiveImageSource::getLatestFrame()
 void LiveImageSource::captureLoop()
 {
 	LOG_TRACE("Starting capture loop in LiveImageSource...");
+
+	// Calculate frame period based on config value maxCaptureFPS to control capture rate
+	using clock = std::chrono::steady_clock;
+	double maxFPS = stream_->getMaxCaptureFPS();
+	const auto framePeriod = std::chrono::duration_cast<clock::duration>(
+		std::chrono::duration<double>(1.0 / maxFPS));
+
 	while (running_) {
+
+		auto start = clock::now();
+
 		ImageFrame frame = stream_->getFrame();
+
+		// only assign latest frame if captured frame is not empty
+		if (frame.image.empty()) {
+			LOG_WARN("Captured empty frame in LiveImageSource, skipping...");
+
+			// Sleep for the remaining frame period to control capture rate even when frames are empty
+			auto elapsed = clock::now() - start;
+
+			if (elapsed < framePeriod) {
+				LOG_TRACE("Sleep for remaining frame period after capturing empty frame in LiveImageSource...");
+				std::this_thread::sleep_for(framePeriod - elapsed);
+			}
+
+			continue;
+		}
+
 		{
 			std::scoped_lock lock(frameMutex_);
 			latestFrame_ = frame;
+			//latestFrame_.image = frame.image.clone();
+
+			// save image frame for debugging
+			/*auto t = std::chrono::system_clock::to_time_t(frame.timestamp);
+			std::stringstream filename;
+			filename << "frame_" << t << ".png";
+
+			cv::imwrite(filename.str(), frame.image);*/
 		}
 		LOG_TRACE("New frame captured and stored in LiveImageSource");
+
+		auto elapsed = clock::now() - start;
+
+		if (elapsed < framePeriod) {
+			LOG_TRACE("Sleep for remaining frame period after capturing frame in LiveImageSource...");
+			std::this_thread::sleep_for(framePeriod - elapsed);
+		}
+		LOG_TRACE("Current frame time");
 	}
 }

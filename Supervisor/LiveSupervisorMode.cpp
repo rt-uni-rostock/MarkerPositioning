@@ -45,18 +45,18 @@ bool LiveSupervisorMode::start() {
 		return false;
 	}
 	
-	if (!imgSource2_.start()) {
-		LOG_ERROR("Failed to start ImageSource 2 for LiveSupervisorMode");
-		imgSource1_.stop(); // stop the first source if the second fails to start
-		return false;
-	}
+	//if (!imgSource2_.start()) {
+	//	LOG_ERROR("Failed to start ImageSource 2 for LiveSupervisorMode");
+	//	imgSource1_.stop(); // stop the first source if the second fails to start
+	//	return false;
+	//}
 
 	LOG_TRACE("Starting Sink for LiveSupervisorMode...");
 	// TODO start
 	if (!sink_.start()) {
 		LOG_ERROR("Failed to start Sink for LiveSupervisorMode");
 		imgSource1_.stop();
-		imgSource2_.stop();
+		//imgSource2_.stop();
 		return false;
 	}
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");

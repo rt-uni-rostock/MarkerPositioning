@@ -29,9 +29,10 @@ public:
 private:
 
 	static constexpr size_t UDP_PACKET_SIZE =
-		sizeof(std::string) +
-		4 * sizeof(int32_t) +
-		6 * sizeof(float);
+		22 * sizeof(double);
+
+	/*sizeof(std::string) +
+		4 * sizeof(int32_t) +*/
 
 	// Serializes PipelineResult into fixed-size UDP packet.
 	void serialize(const PipelineResult& result, std::array<uint8_t, UDP_PACKET_SIZE>& buffer);

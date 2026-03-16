@@ -10,7 +10,7 @@ struct ImageSourceConfig;
 class RTPStream : public IVideoStream
 {
 public:
-	RTPStream(const ImageSourceConfig& settings);
+	explicit RTPStream(const ImageSourceConfig& config);
 	~RTPStream();
 
 	bool open() override;
@@ -19,8 +19,6 @@ public:
 	ImageFrame getFrame() override;
 
 private:
-	const ImageSourceConfig& settings_;
-
 	cv::VideoCapture cap;
 
 	uint64_t frameCounter_ = 0;

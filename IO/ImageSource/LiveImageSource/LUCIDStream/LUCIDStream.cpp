@@ -2,7 +2,7 @@
 
 #include "ImageSource/ImageFrame.h"
 
-LUCIDStream::LUCIDStream(const ImageSourceConfig& settings) : settings_(settings) {
+LUCIDStream::LUCIDStream(const ImageSourceConfig& config) : IVideoStream(config) {
 	//pSystem = Arena::OpenSystem();
 }
 

@@ -110,6 +110,7 @@ int main()
 		sourceConfig1.srcUrl = settings.imgSrc1Url;
 		sourceConfig1.streamId = 0; // TODO: stream id in settings, needed for multiple sources to distinguish them in the pipeline result
         // TODO: static files path in settings
+		sourceConfig1.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
 		sourceConfig1.filePath = "C:/path/to/images"; // for recorded mode, path to image files
         
 		LOG_INFO("Selecting ImageSource1 based on settings: mode={}, type={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.type));
