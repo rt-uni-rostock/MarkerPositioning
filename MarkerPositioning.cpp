@@ -93,24 +93,27 @@ int main()
         // Load settings from JSON file
         SettingsReader settingsReader("Settings.json");
         const GeneralSettings& settings = settingsReader.get();
+		std::vector<const CameraSettings*> activeCameraSettings = settingsReader.getActiveCameraSettingsList();
 
         LOG_INFO("Settings loaded successfully.");
         LOG_TRACE("Loaded settings: sourceMode={}, tagType={}, tagSize={}, tagID={}, quadDecimate={}, udpIp={}, udpPort={}, frameRate={}",
             static_cast<int>(settings.sourceMode), static_cast<int>(settings.tagType), settings.tagSize, settings.tagID, settings.quadDecimate, settings.udpIp,
             settings.udpPort, settings.frameRate);
 
-        //OLD: Start main threads manager, which handles all threads, including image receiving, detection, and UDP sending
-        //OLD: MainThreadsManager mainThreadsManager = MainThreadsManager(settings);
+        
+        // Soon: for each camera init ImageSourceConfig
+        // Now: only first camera from ImageSourceConfig
+
 
         LOG_INFO("Initializing ImageSource 1...");
 
         ImageSourceConfig sourceConfig1;
-        CameraSettings cam1 = settings.cameras[2];
+        const CameraSettings& cam1 = *activeCameraSettings[0];
 		sourceConfig1.mode = settings.sourceMode;
-		sourceConfig1.cameraSettings = cam1;
+		sourceConfig1.cameraSettings = &cam1;
 		sourceConfig1.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
         
-		LOG_INFO("Selecting ImageSource1 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.cameraSettings.streamType));
+		LOG_INFO("Selecting ImageSource1 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.cameraSettings->streamType));
 
         ImageSourceFactory source1(sourceConfig1);
 		auto imgSource1 = source1.create();
@@ -122,10 +125,10 @@ int main()
         ImageSourceConfig sourceConfig2;
         //CameraSettings cam1 = settings.cameras[2];
         sourceConfig2.mode = settings.sourceMode;
-		sourceConfig2.cameraSettings = cam1;
+		sourceConfig2.cameraSettings = &cam1;
         sourceConfig2.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
 
-        LOG_INFO("Selecting ImageSource2 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.cameraSettings.streamType));
+        LOG_INFO("Selecting ImageSource2 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.cameraSettings->streamType));
 
         ImageSourceFactory source2(sourceConfig2);
         auto imgSource2 = source2.create();
@@ -195,54 +198,6 @@ int main()
         else {
 			LOG_CRITICAL("Failed to start Supervisor, shutting down application.");
         }
-
-		
-
-		/*LOG_INFO("Supervisor stopped successfully.");
-
-        LOG_INFO("Starting Sink...");
-
-        sink.start();
-
-        LOG_INFO("Sink successfully started.");
-
-        LOG_INFO("Sending test results to Sink...");
-
-        for (int i = 0; i < 10; ++i)
-        {
-            PipelineResult result;
-            auto now = std::chrono::system_clock::now();
-            result.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), now);
-
-            result.markerId = i;
-            result.cameraId = 1;
-            result.markerType = 42;
-            result.errorCode = 0;
-            result.errorMessage = "";
-
-            result.posX = 1.0f * i;
-            result.posY = 2.0f * i;
-            result.posZ = 3.0f * i;
-
-            result.rotX = 0.1f;
-            result.rotY = 0.2f;
-            result.rotZ = 0.3f;
-
-            sink.send(result);
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
-        LOG_INFO("Finished sending test results.");*/
-
-        //// ---- Let workers process ----
-        //std::this_thread::sleep_for(std::chrono::seconds(1));
-
-        //LOG_INFO("Stopping Sink...");
-
-        //sink.stop();
-
-        //LOG_INFO("Sink stopped.");
 
     }
 

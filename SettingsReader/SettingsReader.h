@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "GeneralSettings.h"
+#include "CameraSettings.h"
 
 // read settings from a configuration file
 class SettingsReader
@@ -11,6 +12,8 @@ public:
 	explicit SettingsReader(const std::string& filename);
 
 	const GeneralSettings& get() const;
+
+	const std::vector<const CameraSettings*> getActiveCameraSettingsList() const;
 private:
 	GeneralSettings settings_;
 

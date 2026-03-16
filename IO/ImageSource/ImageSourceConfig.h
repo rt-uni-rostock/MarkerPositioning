@@ -14,5 +14,5 @@ struct ImageSourceConfig {
 
 	double maxCaptureFPS = 100;
 
-	CameraSettings cameraSettings;
+	const CameraSettings* cameraSettings;
 };

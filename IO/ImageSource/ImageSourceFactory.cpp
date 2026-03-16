@@ -17,8 +17,8 @@ ImageSourceFactory::ImageSourceFactory(const ImageSourceConfig& config) : config
 {
 	LOG_TRACE("ImageSourceFactory initialized with config: mode={}, type={}, url={}",
 		static_cast<int>(config_.mode),
-		static_cast<int>(config_.cameraSettings.streamType),
-		config_.cameraSettings.url);
+		static_cast<int>(config_.cameraSettings->streamType),
+		config_.cameraSettings->url);
 }
 
 
@@ -28,11 +28,11 @@ std::unique_ptr<IImageSource> ImageSourceFactory::create()
 
 	if (config_.mode == SourceMode::Live) {
 
-		LOG_TRACE("Live mode selected, creating video stream based on stream type: {}", static_cast<int>(config_.cameraSettings.streamType));
+		LOG_TRACE("Live mode selected, creating video stream based on stream type: {}", static_cast<int>(config_.cameraSettings->streamType));
 
 		std::unique_ptr<IVideoStream> stream;
 
-		switch (config_.cameraSettings.streamType)
+		switch (config_.cameraSettings->streamType)
 		{
 		case StreamType::RTSP:
 			stream = std::make_unique<RTSPStream>(config_);
@@ -51,7 +51,7 @@ std::unique_ptr<IImageSource> ImageSourceFactory::create()
 			LOG_TRACE("Webcam stream created successfully.");
 			break;
 		default:
-			LOG_ERROR("Unsupported stream type: {}", static_cast<int>(config_.cameraSettings.streamType));
+			LOG_ERROR("Unsupported stream type: {}", static_cast<int>(config_.cameraSettings->streamType));
 			throw std::runtime_error("Unsupported stream type");
 			break;
 		}

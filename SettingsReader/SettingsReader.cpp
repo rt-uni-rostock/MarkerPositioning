@@ -128,6 +128,22 @@ const GeneralSettings& SettingsReader::get() const
 	return settings_;
 }
 
+const std::vector<const CameraSettings*> SettingsReader::getActiveCameraSettingsList() const
+{
+
+	std::vector<const CameraSettings*> activeCameras;
+
+	LOG_TRACE("Getting active camera settings from loaded settings.");
+	for (const auto& cam : settings_.cameras) {
+		if (cam.active) {
+			LOG_TRACE("Active camera found: id={}, name={}", cam.id, cam.name);
+			activeCameras.push_back(&cam);
+		}
+	}
+	LOG_WARN("No active camera found in settings, returning default camera settings.");
+	return activeCameras;
+}
+
 // load settings from file
 GeneralSettings SettingsReader::loadSettings(const std::string& filename)
 {
