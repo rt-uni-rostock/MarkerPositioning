@@ -47,6 +47,7 @@ void from_json(const json& j, CameraSettings& c)
 {
 	c.id = j.value("id", c.id);
 	c.streamType = static_cast<StreamType>(j.value("streamType", static_cast<int>(c.streamType)));
+	c.name = j.value("name", c.name);
 	c.url = j.value("url", c.url);
 	c.pipeline = j.value("pipeline", c.pipeline);
 	c.fx = j.value("fx", c.fx);
@@ -140,7 +141,9 @@ const std::vector<const CameraSettings*> SettingsReader::getActiveCameraSettings
 			activeCameras.push_back(&cam);
 		}
 	}
-	LOG_WARN("No active camera found in settings, returning default camera settings.");
+	if (activeCameras.empty())
+		LOG_WARN("No active camera found in settings, returning default camera settings.");
+
 	return activeCameras;
 }
 
