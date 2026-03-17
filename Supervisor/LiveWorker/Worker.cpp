@@ -5,8 +5,8 @@
 
 #include "Logger.h"
 
-Worker::Worker(IImageSource& source, DetectionPipeline& pipeline)
-	: source_(source), pipeline_(pipeline) {
+Worker::Worker(IImageSource& source, DetectionPipeline& pipeline, uint8_t cameraId)
+	: source_(source), pipeline_(pipeline), cameraId_(cameraId) {
 	LOG_TRACE("Worker created.");
 }
 

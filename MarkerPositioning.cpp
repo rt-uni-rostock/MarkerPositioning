@@ -120,21 +120,6 @@ int main()
 
         LOG_INFO("ImageSource1 successfully initialized.");
 
-        LOG_INFO("Initializing ImageSource 2...");
-
-        ImageSourceConfig sourceConfig2;
-        //CameraSettings cam1 = settings.cameras[2];
-        sourceConfig2.mode = settings.sourceMode;
-		sourceConfig2.cameraSettings = &cam1;
-        sourceConfig2.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
-
-        LOG_INFO("Selecting ImageSource2 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig2.mode), static_cast<int>(sourceConfig2.cameraSettings->streamType));
-
-        ImageSourceFactory source2(sourceConfig2);
-        auto imgSource2 = source2.create();
-
-        LOG_INFO("ImageSource2 successfully initialized.");
-
         LOG_INFO("Initializing DetectionPipeline...");
 
         DetectionPipelineConfig pipelineConfig;
@@ -170,14 +155,15 @@ int main()
         LOG_INFO("Sink successfully initialized.");
 
 
-
         // Read Settings, determine which supervisor mode to use, and run the corresponding mode
         // Test here: live mode
 		
         LOG_INFO("Live Supervisor Mode selected based on settings, initializing supervisor...");
         
-        // TODO: hier müsste ein Vektor an ImageSources übergeben werden
-        LiveSupervisorMode supervisor(*imgSource1, *imgSource2, pipeline, sink, settings);
+        // Create ImageSource vector
+		std::vector<IImageSource*> imgSources = { imgSource1.get() };
+
+        LiveSupervisorMode supervisor(imgSources, pipeline, sink, settings);
 
 		LOG_INFO("Supervisor successfully initialized.");
 		LOG_INFO("Starting Supervisor...");

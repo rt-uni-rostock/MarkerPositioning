@@ -15,8 +15,7 @@ class LiveSupervisorMode : public ISupervisorMode {
 public:
     
     explicit LiveSupervisorMode(
-        IImageSource& imgSource1,
-		IImageSource& imgSource2,
+        const std::vector<IImageSource*>& imgSources,
         DetectionPipeline& pipeline,
 		Sink& sink,
         const GeneralSettings& settings
@@ -29,20 +28,19 @@ public:
 private:
     void supervisorLoop();
     void handleCycle();
-	Worker* acquireFreeWorker();
+	Worker* acquireFreeWorker(uint8_t cameraId);
 	bool isWorkerWithinDeadline(Worker* worker, uint64_t cycleId);
     
 
-    IImageSource& imgSource1_;
-	IImageSource& imgSource2_;
+    const std::vector<IImageSource*>& imgSources_;
     DetectionPipeline& pipeline_;
 	Sink& sink_;
 	const GeneralSettings& settings_;
 
     std::chrono::milliseconds intervalMS_{ 0 };
 
-	std::vector<std::unique_ptr<Worker>> workersSrc1_;
-	std::vector<std::unique_ptr<Worker>> workersSrc2_;
+    // only one list of workers, can be used for each source
+	std::vector<std::unique_ptr<Worker>> workers_;
 
     std::atomic<bool> running_{ false };
 	std::thread supervisorThread_;
@@ -58,5 +56,3 @@ private:
 //      b2) nächster Zyklusschritt: Pipeline mit abgerufenen Bild füttern und Ergebnis erhalten
 // Ergebnisse der Pipeline senden (UDP)
 //	    b3) nächster Zyklusschritt: Ergebnisse der Pipeline über UDP senden
-
-// Letzter Stand: ich wollte die Intervalle berechnen und damit den Prozess steuern

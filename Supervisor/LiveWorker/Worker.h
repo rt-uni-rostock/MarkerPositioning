@@ -16,7 +16,7 @@ enum class WorkerState
 
 class Worker {
 public:
-	Worker(IImageSource& source, DetectionPipeline& pipeline);
+	Worker(IImageSource& source, DetectionPipeline& pipeline, uint8_t cameraId);
 	~Worker();
 
 	bool isIdle() const;
@@ -25,6 +25,8 @@ public:
 		std::function<void(const DetectionResult&)> onSuccess,
 		std::function<void(std::string)> onError);
 	std::chrono::steady_clock::time_point startTime() const;
+
+	uint8_t getCameraId() const { return cameraId_; }
 private:
 	std::atomic<WorkerState> state_{ WorkerState::Idle };
 	
@@ -33,4 +35,6 @@ private:
 
 	IImageSource& source_;
 	DetectionPipeline& pipeline_;
+
+	const uint8_t cameraId_;
 };

@@ -16,47 +16,58 @@ using steady_clock = std::chrono::steady_clock;
 
 // constructor: initializes the main threads with the given settings
 LiveSupervisorMode::LiveSupervisorMode(
-	IImageSource& imgSource1,
-	IImageSource& imgSource2,
+	const std::vector<IImageSource*>& imgSources,
     DetectionPipeline& pipeline,
 	Sink& sink,
     const GeneralSettings& settings
-) : imgSource1_(imgSource1), imgSource2_(imgSource2), pipeline_(pipeline), sink_(sink), settings_(settings)
+) : imgSources_(imgSources), pipeline_(pipeline), sink_(sink), settings_(settings)
 {
 	// create workers for the pipeline
     // supervisor is single owner of the workers
     // pushes workers at the end of the vector, creates worker in container
-	LOG_TRACE("Initializing LiveSupervisorMode with two workers...");
-	// TODO: add image source 2 for pipeline
-	workersSrc1_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
-	workersSrc1_.emplace_back(std::make_unique<Worker>(imgSource1_, pipeline_));
-	workersSrc2_.emplace_back(std::make_unique<Worker>(imgSource2_, pipeline_));
-	workersSrc2_.emplace_back(std::make_unique<Worker>(imgSource2_, pipeline_));
+	LOG_TRACE("Initializing LiveSupervisorMode with two workers for each camera...");
+
+	// foreach active camera create two workers
+	size_t idx = 0;
+	for (const auto& cam : settings_.cameras) {
+		if (cam.active) {
+			LOG_TRACE("Creating workers for camera {}...", cam.id);
+			workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], pipeline_, cam.id));
+			workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], pipeline_, cam.id));
+
+			idx++;
+		}
+	}
 }
 
 // starts the supervisor thread, which runs the main loop for the live supervisor mode
 // also starts the image source, which runs in its own thread and provides frames for the pipeline
 bool LiveSupervisorMode::start() {
 	
-	LOG_TRACE("Starting ImageSource for LiveSupervisorMode...");
-	
-	if (!imgSource1_.start()) {
-		LOG_ERROR("Failed to start ImageSource 1 for LiveSupervisorMode");
-		return false;
+	LOG_TRACE("Starting all ImageSources for LiveSupervisorMode...");
+
+	// start all image sources
+	for (const auto& imgSource : imgSources_) {
+		if (!imgSource->start()) {
+			LOG_ERROR("Failed to start an ImageSource for LiveSupervisorMode");
+			// stop all previously started sources
+			for (const auto& startedSource : imgSources_) {
+				startedSource->stop();
+			}
+			return false;
+		}
 	}
-	
-	//if (!imgSource2_.start()) {
-	//	LOG_ERROR("Failed to start ImageSource 2 for LiveSupervisorMode");
-	//	imgSource1_.stop(); // stop the first source if the second fails to start
-	//	return false;
-	//}
 
 	LOG_TRACE("Starting Sink for LiveSupervisorMode...");
 	// TODO start
 	if (!sink_.start()) {
 		LOG_ERROR("Failed to start Sink for LiveSupervisorMode");
-		imgSource1_.stop();
-		//imgSource2_.stop();
+		
+		// stop all image sources
+		for (const auto& imgSource : imgSources_) {
+			imgSource->stop();
+		}
+
 		return false;
 	}
 	LOG_TRACE("Starting LiveSupervisorMode supervisor thread...");
@@ -83,8 +94,16 @@ bool LiveSupervisorMode::stop() {
 		}
 	}
 
-	LOG_TRACE("Stopping ImageSource and Sink for LiveSupervisorMode...");
-	success = success && imgSource1_.stop() && imgSource2_.stop() && sink_.stop();
+	LOG_TRACE("Stopping all ImageSources for LiveSupervisorMode...");
+	for (const auto& imgSource : imgSources_) {
+		if (!imgSource->stop()) {
+			LOG_ERROR("Failed to stop an ImageSource for LiveSupervisorMode");
+			success = false;
+		}
+	}
+
+	LOG_TRACE("Stopping Sink for LiveSupervisorMode...");
+	success = success && sink_.stop();
 
 	return success;
 
@@ -123,84 +142,89 @@ void LiveSupervisorMode::supervisorLoop() {
 // handles one cycle of supervisor loop, if interval exceeds time throw error
 void LiveSupervisorMode::handleCycle() {
 
-	LOG_TRACE("Handling LiveSupervisorMode cycle {}, acquiring free worker...", cycleCount_);
+	LOG_TRACE("Handling LiveSupervisorMode cycle {}, acquiring free workers...", cycleCount_);
 
 	// increment cycle count
 	++cycleCount_;
 
-	// free worker thread, where the pipeline can be executed
-	// TODO: aquire free worker for each image source
-	// Worker* workerSrc1 = acquireFreeWorker(imgSrcId(1));
-	// Worker* workerSrc2 = acquireFreeWorker(imgSrcId(2));
-	Worker* worker = acquireFreeWorker();
-
-	// if no worker is available, log an error and skip this cycle
-	if (!worker) {
-		LOG_ERROR("No free worker available in cycle {}, skipping this cycle.", cycleCount_);
-
-		// TODO: send error via sink
-		//sink_.sendError("No free worker in cycle " + std::to_string(cycleCount_));
-		return;
-	}
-	// TODO: error for each image source if no worker is available
-	// if (!workerSrc1) {
-	// ...
-	// if (!workerSrc2) {
-	// ...
-
 	// id of current cycle, used for logging and error handling
 	auto cycleId = cycleCount_;
 
-	// start pipeline execution for worker
-	LOG_TRACE("Starting worker for LiveSupervisorMode cycle {}...", cycleId);
-	worker->start(
-		cycleId,
-		[this, cycleId, worker](const DetectionResult result) {
-			LOG_INFO("Worker completed successfully for cycle {}, result: {}", cycleId, result.markerId);
-			
-			bool withinDeadline = isWorkerWithinDeadline(worker, cycleId);
-
-			std::string message = "";
-			if (!result.success) 
-				message += "Detection failed for cycle " + std::to_string(cycleId) + ".";
-			if (!withinDeadline) 
-				message += " Worker missed deadline for cycle " + std::to_string(cycleId) + ".";
-
-			PipelineResult pipelineResult;
-			pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), result.timestamp);
-			pipelineResult.markerId = result.markerId;
-			pipelineResult.cameraId = 1; // TODO: get actual camera id if we have multiple sources
-			pipelineResult.markerType = 0;
-			pipelineResult.errorCode = result.success ? 0 : 1;
-			pipelineResult.errorMessage = result.success ? "" : "Detection failed";
-			pipelineResult.posX = result.pose.x;
-			pipelineResult.posY = result.pose.y;
-			pipelineResult.posZ = result.pose.z;
-			pipelineResult.rotX = result.pose.roll;
-			pipelineResult.rotY = result.pose.pitch;
-			pipelineResult.rotZ = result.pose.yaw;
-			
-			// send pipeline result to sink
-			sink_.send(pipelineResult);
-		},
-		[this, cycleId](const std::string& err) {
-			LOG_ERROR("Worker failed for cycle {}, error: {}", cycleId, err);
-
-			PipelineResult pipelineResult;
-			pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), std::chrono::system_clock::now());
-			pipelineResult.errorCode = 1;
-			pipelineResult.errorMessage = err;
-			sink_.send(pipelineResult);
+	// iterate over all configured cameras
+	for (const auto& cam : settings_.cameras) {
+		// skip inactive cameras
+		if (!cam.active) {
+			continue;
 		}
-	);
+
+		// acquire free worker for this specific camera
+		Worker* worker = acquireFreeWorker(cam.id);
+
+		// if no worker is available for this camera, log an error and skip
+		if (!worker) {
+			LOG_ERROR("No free worker available for camera {} in cycle {}, skipping this image source.", cam.id, cycleId);
+			// Optional: send error via sink
+			// PipelineResult errResult;
+			// errResult.cameraId = cam.id;
+			// errResult.errorCode = 1;
+			// errResult.errorMessage = "No free worker in cycle " + std::to_string(cycleId);
+			// sink_.send(errResult);
+			continue;
+		}
+
+		// start pipeline execution for worker
+		LOG_TRACE("Starting worker for camera {} in LiveSupervisorMode cycle {}...", cam.id, cycleId);
+		
+		worker->start(
+			cycleId,
+			[this, cycleId, worker, cameraId = cam.id](const DetectionResult result) {
+				LOG_INFO("Worker completed successfully for camera {} in cycle {}, result: {}", cameraId, cycleId, result.markerId);
+				
+				bool withinDeadline = isWorkerWithinDeadline(worker, cycleId);
+
+				std::string message = "";
+				if (!result.success) 
+					message += "Detection failed for cycle " + std::to_string(cycleId) + ".";
+				if (!withinDeadline) 
+					message += " Worker missed deadline for cycle " + std::to_string(cycleId) + ".";
+
+				PipelineResult pipelineResult;
+				pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), result.timestamp);
+				pipelineResult.markerId = result.markerId;
+				pipelineResult.cameraId = cameraId; // now using the actual camera id
+				pipelineResult.markerType = 0;
+				pipelineResult.errorCode = result.success ? 0 : 1;
+				pipelineResult.errorMessage = result.success ? "" : "Detection failed";
+				pipelineResult.posX = result.pose.x;
+				pipelineResult.posY = result.pose.y;
+				pipelineResult.posZ = result.pose.z;
+				pipelineResult.rotX = result.pose.roll;
+				pipelineResult.rotY = result.pose.pitch;
+				pipelineResult.rotZ = result.pose.yaw;
+				
+				// send pipeline result to sink
+				sink_.send(pipelineResult);
+			},
+			[this, cycleId, cameraId = cam.id](const std::string& err) {
+				LOG_ERROR("Worker failed for camera {} in cycle {}, error: {}", cameraId, cycleId, err);
+
+				PipelineResult pipelineResult;
+				pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), std::chrono::system_clock::now());
+				pipelineResult.cameraId = cameraId;
+				pipelineResult.errorCode = 1;
+				pipelineResult.errorMessage = err;
+				sink_.send(pipelineResult);
+			}
+		);
+	}
 }
 
 // helper method to acquire a free worker, returns nullptr if no worker is available
-Worker* LiveSupervisorMode::acquireFreeWorker() {
-	// iterate over workers and return the first idle worker
-	LOG_TRACE("Acquiring free worker for LiveSupervisorMode cycle {}...", cycleCount_);
-	for (auto& w : workersSrc1_) {
-		if (w->isIdle()) {
+Worker* LiveSupervisorMode::acquireFreeWorker(uint8_t cameraId) {
+	// iterate over workers and return the first idle worker belonging to the specified camera
+	LOG_TRACE("Acquiring free worker for LiveSupervisorMode cycle {} and camera {} ...", cycleCount_, cameraId);
+	for (auto& w : workers_) {
+		if (w->getCameraId() == cameraId && w->isIdle()) {
 			LOG_TRACE("Found free worker for LiveSupervisorMode cycle {}.", cycleCount_);
 			return w.get();
 		}
