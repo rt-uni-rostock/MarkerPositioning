@@ -1,5 +1,5 @@
 #pragma once
-//#include "ArenaApi.h"
+#include "ArenaApi.h"
 //#include "../ImageReceiverThread.h"
 #include "ImageSource/LiveImageSource/IVideoStream.h"
 
@@ -18,5 +18,5 @@ public:
 private:
 	uint64_t frameCounter_ = 0;
 
-	//Arena::ISystem* pSystem;
+	Arena::ISystem* system_;
 };

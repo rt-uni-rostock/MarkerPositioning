@@ -162,15 +162,36 @@ add_library(ImageSource
     IO/ImageSource/StaticImageSource/StaticImageSource.cpp
 )
 
+set(LUCID_ROOT $ENV{LUCID_DEV_ROOT})
+set(LUCID_LIB_DIR "${LUCID_ROOT}/lib/Arena")
+set(GENICAM_ROOT $ENV{LUCID_GENICAM_PATH})
+set(GENICAM_LIB_DIR "${GENICAM_ROOT}/library/CPP/lib/Win64_x64")
+
 target_include_directories(ImageSource 
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/IO
+    PRIVATE
+        ${LUCID_ROOT}/include/Arena
+        ${LUCID_ROOT}/include/GenTL
+        ${LUCID_ROOT}/include/Save
+        ${GENICAM_ROOT}/library/CPP/include
 )
 
-target_link_libraries(ImageSource PUBLIC
-    ${OpenCV_LIBS}
-    Helper
-    CoreTypes
+target_link_directories(ImageSource PUBLIC
+	${LUCID_ROOT}/lib/win64
+	${GENICAM_ROOT}/library/CPP/lib/win64
+)
+
+target_link_libraries(ImageSource 
+    PUBLIC
+        ${OpenCV_LIBS}
+        Helper
+        CoreTypes
+
+    PRIVATE
+        Arena
+		Save
+		GenICam
 )
 
 # =============================================================
