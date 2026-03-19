@@ -71,21 +71,21 @@ int main()
 
     {
 
-        LOG_INFO("Checking GStreamer environment variables:");
+        //LOG_INFO("Checking GStreamer environment variables:");
 
         // Gstreamer evironment variables for debugging
-        const char* gst_path = std::getenv("GST_PLUGIN_PATH");
-        const char* path = std::getenv("PATH");
+        //const char* gst_path = std::getenv("GST_PLUGIN_PATH");
+        //const char* path = std::getenv("PATH");
 
-        if (gst_path)
-            LOG_INFO("GST_PLUGIN_PATH = {}", gst_path);
-        else
-            LOG_WARN("GST_PLUGIN_PATH is not set");
+        //if (gst_path)
+        //    LOG_INFO("GST_PLUGIN_PATH = {}", gst_path);
+        //else
+        //    LOG_WARN("GST_PLUGIN_PATH is not set");
 
-        if (path)
-            LOG_INFO("PATH = {}", path);
-        else
-            LOG_WARN("PATH is not set");
+        //if (path)
+        //    LOG_INFO("PATH = {}", path);
+        //else
+        //    LOG_WARN("PATH is not set");
 
 
         LOG_INFO("Loading settings from JSON file...");

@@ -56,6 +56,12 @@ DetectionResult AprilTagDetection::process(const ImageFrame& frame) {
 
 	LOG_TRACE("Applying detection for frame with ID: {}...", frame.frameId);
 
+	//auto t = std::chrono::system_clock::to_time_t(frame.timestamp);
+	//std::stringstream filename;
+	//filename << "frame_" << t << ".png";
+
+	//cv::imwrite(filename.str(), gray);
+
 	Pose pose = detect(gray);
 
 	result.pose = pose;
