@@ -18,5 +18,6 @@ public:
 private:
 	uint64_t frameCounter_ = 0;
 
-	Arena::ISystem* system_;
+	Arena::ISystem* system_ = nullptr;
+	Arena::IDevice* device_ = nullptr;
 };

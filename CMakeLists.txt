@@ -163,14 +163,11 @@ add_library(ImageSource
 )
 
 set(LUCID_ROOT $ENV{LUCID_DEV_ROOT})
-set(LUCID_LIB_DIR "${LUCID_ROOT}/lib/Arena")
 set(GENICAM_ROOT $ENV{LUCID_GENICAM_PATH})
-set(GENICAM_LIB_DIR "${GENICAM_ROOT}/library/CPP/lib/Win64_x64")
 
 target_include_directories(ImageSource 
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/IO
-    PRIVATE
         ${LUCID_ROOT}/include/Arena
         ${LUCID_ROOT}/include/GenTL
         ${LUCID_ROOT}/include/Save
@@ -178,8 +175,8 @@ target_include_directories(ImageSource
 )
 
 target_link_directories(ImageSource PUBLIC
-	${LUCID_ROOT}/lib/win64
-	${GENICAM_ROOT}/library/CPP/lib/win64
+	${LUCID_ROOT}/lib64/Arena
+	${GENICAM_ROOT}/library/CPP/lib/Win64_x64
 )
 
 target_link_libraries(ImageSource 
@@ -189,9 +186,8 @@ target_link_libraries(ImageSource
         CoreTypes
 
     PRIVATE
-        Arena
-		Save
-		GenICam
+        Arenad_v140
+        Saved_v140
 )
 
 # =============================================================
