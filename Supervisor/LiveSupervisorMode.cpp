@@ -17,10 +17,10 @@ using steady_clock = std::chrono::steady_clock;
 // constructor: initializes the main threads with the given settings
 LiveSupervisorMode::LiveSupervisorMode(
 	const std::vector<IImageSource*>& imgSources,
-    DetectionPipeline& pipeline,
+	const std::vector<DetectionPipeline*>& pipelines,
 	Sink& sink,
     const GeneralSettings& settings
-) : imgSources_(imgSources), pipeline_(pipeline), sink_(sink), settings_(settings)
+) : imgSources_(imgSources), pipelines_(pipelines), sink_(sink), settings_(settings)
 {
 	// create workers for the pipeline
     // supervisor is single owner of the workers
@@ -32,8 +32,23 @@ LiveSupervisorMode::LiveSupervisorMode(
 	for (const auto& cam : settings_.cameras) {
 		if (cam.active) {
 			LOG_TRACE("Creating workers for camera {}...", cam.id);
-			workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], pipeline_, cam.id));
-			workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], pipeline_, cam.id));
+
+			// select camera specific pipeline
+			DetectionPipeline* pipeline = nullptr;
+			for (const auto& p : pipelines_) {
+				if (p->getCameraId() == cam.id) {
+					pipeline = p;
+					break;
+				}
+			}
+
+			if (pipeline != nullptr) {
+				// Worker erwartet eine Referenz (&), daher den Pointer einmal dereferenzieren (*pipeline)
+				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *pipeline, cam.id));
+				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *pipeline, cam.id));
+			} else {
+				LOG_ERROR("No pipeline found for camera ID {}", cam.id);
+			}
 
 			idx++;
 		}
@@ -177,7 +192,7 @@ void LiveSupervisorMode::handleCycle() {
 		
 		worker->start(
 			cycleId,
-			[this, cycleId, worker, cameraId = cam.id](const DetectionResult result) {
+			[this, cycleId, worker, cameraId = cam.id](const DetectionResult& result) {
 				LOG_INFO("Worker completed successfully for camera {} in cycle {}, result: {}", cameraId, cycleId, result.markerId);
 				
 				bool withinDeadline = isWorkerWithinDeadline(worker, cycleId);

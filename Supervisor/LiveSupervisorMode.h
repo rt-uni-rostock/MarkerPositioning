@@ -4,6 +4,7 @@
 #include "Worker.h"
 #include <chrono>
 #include <thread>
+#include <vector>
 
 class IImageSource;
 class DetectionPipeline;
@@ -16,7 +17,7 @@ public:
     
     explicit LiveSupervisorMode(
         const std::vector<IImageSource*>& imgSources,
-        DetectionPipeline& pipeline,
+        const std::vector<DetectionPipeline*>& pipelines,
 		Sink& sink,
         const GeneralSettings& settings
     );
@@ -33,7 +34,7 @@ private:
     
 
     const std::vector<IImageSource*>& imgSources_;
-    DetectionPipeline& pipeline_;
+    const std::vector<DetectionPipeline*>& pipelines_;
 	Sink& sink_;
 	const GeneralSettings& settings_;
 

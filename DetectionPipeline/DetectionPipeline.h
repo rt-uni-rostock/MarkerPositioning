@@ -21,6 +21,9 @@ public:
 
 	// Process an image frame and return the detection result
 	DetectionResult process(ImageFrame& frame);
+
+	// Get the camera ID associated with this pipeline
+	int getCameraId() const { return config_.cameraId; }
 private:
 	DetectionPipelineConfig config_;
 	

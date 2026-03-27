@@ -105,40 +105,94 @@ int main()
         // Now: only first camera from ImageSourceConfig
 
 
-        LOG_INFO("Initializing ImageSource 1...");
+  //      LOG_INFO("Initializing ImageSource 1...");
 
-        ImageSourceConfig sourceConfig1;
-        const CameraSettings& cam1 = *activeCameraSettings[0];
-		sourceConfig1.mode = settings.sourceMode;
-		sourceConfig1.cameraSettings = &cam1;
-		sourceConfig1.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
-        
-		LOG_INFO("Selecting ImageSource1 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.cameraSettings->streamType));
+  //      ImageSourceConfig sourceConfig1;
+  //      const CameraSettings& cam1 = *activeCameraSettings[0];
+		//sourceConfig1.mode = settings.sourceMode;
+		//sourceConfig1.cameraSettings = &cam1;
+		//sourceConfig1.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
+  //      
+		//LOG_INFO("Selecting ImageSource1 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.cameraSettings->streamType));
 
-        ImageSourceFactory source1(sourceConfig1);
-		auto imgSource1 = source1.create();
+  //      ImageSourceFactory source1(sourceConfig1);
+		//auto imgSource1 = source1.create();
 
-        LOG_INFO("ImageSource1 successfully initialized.");
+  //      LOG_INFO("ImageSource1 successfully initialized.");
 
-        LOG_INFO("Initializing DetectionPipeline...");
+		LOG_INFO("Initializing ImageSources...");
 
-        DetectionPipelineConfig pipelineConfig;
-		pipelineConfig.cx = cam1.cx;
-		pipelineConfig.cy = cam1.cy;
-		pipelineConfig.fx = cam1.fx;
-		pipelineConfig.fy = cam1.fy;
-		pipelineConfig.d1 = cam1.d1;
-		pipelineConfig.d2 = cam1.d2;
-		pipelineConfig.d3 = cam1.d3;
-		pipelineConfig.d4 = cam1.d4;
-		pipelineConfig.d5 = cam1.d5;
-		pipelineConfig.tagSize = settings.tagSize;
-		pipelineConfig.tagID = settings.tagID;
-		pipelineConfig.quadDecimate = settings.quadDecimate;
-		pipelineConfig.detectionType = (settings.tagType == TagType::AprilTag) ? DetectionType::AprilTag : DetectionType::ArUco;
-        DetectionPipeline pipeline(pipelineConfig);
+		// Vector to hold all initialized ImageSources, will be passed to supervisor
+		std::vector<std::unique_ptr<IImageSource>> imgSources;
 
-        LOG_INFO("DetectionPipeline successfully initialized.");
+		// Vector to hold all initialized DetectionPipelines, will be passed to supervisor
+		std::vector<std::unique_ptr<DetectionPipeline>> pipelines;
+
+		// Loop through all active cameras and initialize corresponding ImageSources
+        for (size_t i = 0; i < activeCameraSettings.size(); i++) {
+            ImageSourceConfig sourceConfig;
+            const CameraSettings& cam = *activeCameraSettings[i];
+            sourceConfig.mode = settings.sourceMode;
+            sourceConfig.cameraSettings = &cam;
+            sourceConfig.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
+            LOG_INFO("Selecting ImageSource {} based on settings: mode={}, streamType={}", i + 1, static_cast<int>(sourceConfig.mode), static_cast<int>(sourceConfig.cameraSettings->streamType));
+            ImageSourceFactory sourceFactory(sourceConfig);
+            auto imgSource = sourceFactory.create();
+            LOG_INFO("ImageSource {} successfully initialized.", i + 1);
+
+			// Add the initialized ImageSource to the vector
+			imgSources.push_back(std::move(imgSource));
+
+            // TODO: ist es sinnvoll, hier mehrere Instanzen der Pipeline zu erstellen?
+            //       das möchte ich doch eher in den Supervisor verlagern oder?
+            DetectionPipelineConfig pipelineConfig;
+			pipelineConfig.cameraId = cam.id;
+            pipelineConfig.cx = cam.cx;
+            pipelineConfig.cy = cam.cy;
+            pipelineConfig.fx = cam.fx;
+            pipelineConfig.fy = cam.fy;
+            pipelineConfig.d1 = cam.d1;
+            pipelineConfig.d2 = cam.d2;
+            pipelineConfig.d3 = cam.d3;
+            pipelineConfig.d4 = cam.d4;
+            pipelineConfig.d5 = cam.d5;
+
+            if (cam.id == 2) {
+                pipelineConfig.tagSize = 0.12;
+                pipelineConfig.tagID = 17;
+            }
+            else if (cam.id == 4) {
+                pipelineConfig.tagSize = 0.75;
+				pipelineConfig.tagID = 11;
+                /*pipelineConfig.tagSize = 0.12;
+				pipelineConfig.tagID = 17;*/
+            }
+            else {
+                pipelineConfig.tagSize = settings.tagSize;
+                pipelineConfig.tagID = settings.tagID;
+			}
+
+            /*pipelineConfig.tagSize = settings.tagSize;
+            pipelineConfig.tagID = settings.tagID;*/
+            pipelineConfig.quadDecimate = settings.quadDecimate;
+            pipelineConfig.detectionType = (settings.tagType == TagType::AprilTag) ? DetectionType::AprilTag : DetectionType::ArUco;
+            auto pipeline = std::make_unique<DetectionPipeline>(std::move(pipelineConfig));
+
+			pipelines.push_back(std::move(pipeline));
+		}
+
+        // Erstelle Vektor mit Raw-Pointern für den Supervisor
+        std::vector<IImageSource*> imgSourcePtrs;
+        for (auto& src : imgSources) {
+            imgSourcePtrs.push_back(src.get());
+        }
+
+		std::vector<DetectionPipeline*> pipelinePtrs;
+        for (auto& pipe : pipelines) {
+            pipelinePtrs.push_back(pipe.get());
+		}
+
+
         LOG_INFO("Initializing Sink...");
 
         SinkConfig sinkConfig;
@@ -159,11 +213,8 @@ int main()
         // Test here: live mode
 		
         LOG_INFO("Live Supervisor Mode selected based on settings, initializing supervisor...");
-        
-        // Create ImageSource vector
-		std::vector<IImageSource*> imgSources = { imgSource1.get() };
 
-        LiveSupervisorMode supervisor(imgSources, pipeline, sink, settings);
+        LiveSupervisorMode supervisor(imgSourcePtrs, pipelinePtrs, sink, settings);
 
 		LOG_INFO("Supervisor successfully initialized.");
 		LOG_INFO("Starting Supervisor...");

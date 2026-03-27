@@ -12,6 +12,7 @@ enum class DetectionType {
 struct DetectionPipelineConfig {
 	double tagSize = 0.0;
 	int tagID = 0;
+	int cameraId = 0;
 	double fx = 0.0;
 	double fy = 0.0;
 	double cx = 0.0;
