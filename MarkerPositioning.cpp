@@ -70,24 +70,6 @@ int main()
 	LOG_INFO("Application starting...");
 
     {
-
-        //LOG_INFO("Checking GStreamer environment variables:");
-
-        // Gstreamer evironment variables for debugging
-        //const char* gst_path = std::getenv("GST_PLUGIN_PATH");
-        //const char* path = std::getenv("PATH");
-
-        //if (gst_path)
-        //    LOG_INFO("GST_PLUGIN_PATH = {}", gst_path);
-        //else
-        //    LOG_WARN("GST_PLUGIN_PATH is not set");
-
-        //if (path)
-        //    LOG_INFO("PATH = {}", path);
-        //else
-        //    LOG_WARN("PATH is not set");
-
-
         LOG_INFO("Loading settings from JSON file...");
 
         // Load settings from JSON file
@@ -100,25 +82,6 @@ int main()
             static_cast<int>(settings.sourceMode), static_cast<int>(settings.tagType), settings.tagSize, settings.tagID, settings.quadDecimate, settings.udpIp,
             settings.udpPort, settings.frameRate);
 
-        
-        // Soon: for each camera init ImageSourceConfig
-        // Now: only first camera from ImageSourceConfig
-
-
-  //      LOG_INFO("Initializing ImageSource 1...");
-
-  //      ImageSourceConfig sourceConfig1;
-  //      const CameraSettings& cam1 = *activeCameraSettings[0];
-		//sourceConfig1.mode = settings.sourceMode;
-		//sourceConfig1.cameraSettings = &cam1;
-		//sourceConfig1.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
-  //      
-		//LOG_INFO("Selecting ImageSource1 based on settings: mode={}, streamType={}", static_cast<int>(sourceConfig1.mode), static_cast<int>(sourceConfig1.cameraSettings->streamType));
-
-  //      ImageSourceFactory source1(sourceConfig1);
-		//auto imgSource1 = source1.create();
-
-  //      LOG_INFO("ImageSource1 successfully initialized.");
 
 		LOG_INFO("Initializing ImageSources...");
 
@@ -129,12 +92,18 @@ int main()
 		std::vector<std::unique_ptr<DetectionPipeline>> pipelines;
 
 		// Loop through all active cameras and initialize corresponding ImageSources
-        for (size_t i = 0; i < activeCameraSettings.size(); i++) {
+
+		size_t numActiveCameras = activeCameraSettings.size();
+
+        for (size_t i = 0; i < numActiveCameras; i++) {
+
             ImageSourceConfig sourceConfig;
             const CameraSettings& cam = *activeCameraSettings[i];
+
             sourceConfig.mode = settings.sourceMode;
             sourceConfig.cameraSettings = &cam;
             sourceConfig.maxCaptureFPS = settings.frameRate * 3; // set max capture FPS to the frame rate specified in settings
+            
             LOG_INFO("Selecting ImageSource {} based on settings: mode={}, streamType={}", i + 1, static_cast<int>(sourceConfig.mode), static_cast<int>(sourceConfig.cameraSettings->streamType));
             ImageSourceFactory sourceFactory(sourceConfig);
             auto imgSource = sourceFactory.create();
@@ -143,8 +112,6 @@ int main()
 			// Add the initialized ImageSource to the vector
 			imgSources.push_back(std::move(imgSource));
 
-            // TODO: ist es sinnvoll, hier mehrere Instanzen der Pipeline zu erstellen?
-            //       das möchte ich doch eher in den Supervisor verlagern oder?
             DetectionPipelineConfig pipelineConfig;
 			pipelineConfig.cameraId = cam.id;
             pipelineConfig.cx = cam.cx;

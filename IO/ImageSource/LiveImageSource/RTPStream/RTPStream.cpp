@@ -8,6 +8,22 @@
 
 RTPStream::RTPStream(const ImageSourceConfig& config) : IVideoStream(config)
 {
+	LOG_INFO("Checking GStreamer environment variables:");
+
+	// Gstreamer evironment variables for debugging
+	const char* gst_path = std::getenv("GST_PLUGIN_PATH");
+	const char* path = std::getenv("PATH");
+
+	if (gst_path)
+		LOG_INFO("GST_PLUGIN_PATH = {}", gst_path);
+	else
+		LOG_WARN("GST_PLUGIN_PATH is not set");
+
+	if (path)
+		LOG_INFO("PATH = {}", path);
+	else
+		LOG_WARN("PATH is not set");
+
 	LOG_TRACE("RTPStream created with provided settings: url={}",
 		config_.cameraSettings->url);
 }
