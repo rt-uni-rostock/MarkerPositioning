@@ -13,6 +13,34 @@ using json = nlohmann::json;
 
 
 /// <summary>
+/// Convert ImageLoggingOptions to json, used for saving settings to file
+/// </summary>
+/// <param name="j">JSON Object</param>
+/// <param name="o">Serialized ImageLoggingOptions object</param>
+void to_json(json& j, const ImageLoggingOptions& o)
+{
+	j = json{
+		{"saveRawFrames", o.saveRawFrames},
+		{"saveGrayFrames", o.saveGrayFrames},
+		{"saveDetectionResults", o.saveDetectionResults},
+		{"visualizeAllDetections", o.visualizeAllDetections}
+	};
+}
+
+/// <summary>
+/// deserializes json object to ImageLoggingOptions, used for loading settings from file
+/// </summary>
+/// <param name="j">JSON object, containing image logging options</param>
+/// <param name="o">ImageLoggingOptions object</param>
+void from_json(const json& j, ImageLoggingOptions& o)
+{
+	o.saveRawFrames = j.value("saveRawFrames", o.saveRawFrames);
+	o.saveGrayFrames = j.value("saveGrayFrames", o.saveGrayFrames);
+	o.saveDetectionResults = j.value("saveDetectionResults", o.saveDetectionResults);
+	o.visualizeAllDetections = j.value("visualizeAllDetections", o.visualizeAllDetections);
+}
+
+/// <summary>
 /// Convert CameraSettings to json, used for saving settings to file
 /// </summary>
 /// <param name="j">JSON Object</param>
@@ -78,6 +106,9 @@ void to_json(json& j, const GeneralSettings& s)
 		{"udpIp", s.udpIp},
 		{"udpPort", s.udpPort},
 		{"frameRate", s.frameRate},
+		{"enableImageLogging", s.enableImageLogging},
+		{"imageOutputPath", s.imageOutputPath},
+		{"imageLogOptions", s.imageLogOptions},
 		{"cameras", s.cameras}
 	};
 }
@@ -97,6 +128,13 @@ void from_json(const json& j, GeneralSettings& s)
 	s.udpPort = j.value("udpPort", s.udpPort);
 
 	s.frameRate = j.value("frameRate", s.frameRate);
+
+	// Image Logging settings
+	s.enableImageLogging = j.value("enableImageLogging", s.enableImageLogging);
+	s.imageOutputPath = j.value("imageOutputPath", s.imageOutputPath);
+
+	if (j.contains("imageLogOptions"))
+		s.imageLogOptions = j.at("imageLogOptions").get<ImageLoggingOptions>();
 
 	if (j.contains("cameras"))
 		s.cameras = j.at("cameras").get<std::vector<CameraSettings>>();

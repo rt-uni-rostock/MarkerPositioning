@@ -113,7 +113,7 @@ int main()
 			imgSources.push_back(std::move(imgSource));
 
             DetectionPipelineConfig pipelineConfig;
-			pipelineConfig.cameraId = cam.id;
+            pipelineConfig.cameraId = cam.id;
             pipelineConfig.cx = cam.cx;
             pipelineConfig.cy = cam.cy;
             pipelineConfig.fx = cam.fx;
@@ -124,28 +124,37 @@ int main()
             pipelineConfig.d4 = cam.d4;
             pipelineConfig.d5 = cam.d5;
 
-            if (cam.id == 2) {
+            if (cam.id == 2 || cam.id == 3) {
                 pipelineConfig.tagSize = 0.12;
                 pipelineConfig.tagID = 17;
             }
             else if (cam.id == 4) {
                 pipelineConfig.tagSize = 0.75;
-				pipelineConfig.tagID = 11;
+                pipelineConfig.tagID = 11;
                 /*pipelineConfig.tagSize = 0.12;
-				pipelineConfig.tagID = 17;*/
+                pipelineConfig.tagID = 17;*/
             }
             else {
                 pipelineConfig.tagSize = settings.tagSize;
                 pipelineConfig.tagID = settings.tagID;
-			}
+            }
 
             /*pipelineConfig.tagSize = settings.tagSize;
             pipelineConfig.tagID = settings.tagID;*/
             pipelineConfig.quadDecimate = settings.quadDecimate;
             pipelineConfig.detectionType = (settings.tagType == TagType::AprilTag) ? DetectionType::AprilTag : DetectionType::ArUco;
+            
+            // Image Logging Konfiguration von GeneralSettings übernehmen
+            pipelineConfig.enableImageLogging = settings.enableImageLogging;
+            pipelineConfig.imageOutputPath = settings.imageOutputPath;
+            pipelineConfig.saveRawFrames = settings.imageLogOptions.saveRawFrames;
+            pipelineConfig.saveGrayFrames = settings.imageLogOptions.saveGrayFrames;
+            pipelineConfig.saveDetectionResults = settings.imageLogOptions.saveDetectionResults;
+            pipelineConfig.visualizeAllDetections = settings.imageLogOptions.visualizeAllDetections;
+            
             auto pipeline = std::make_unique<DetectionPipeline>(std::move(pipelineConfig));
 
-			pipelines.push_back(std::move(pipeline));
+            pipelines.push_back(std::move(pipeline));
 		}
 
         // Erstelle Vektor mit Raw-Pointern für den Supervisor

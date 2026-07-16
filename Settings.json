@@ -10,6 +10,15 @@
   "tagSize": 0.75,
   "tagID": 11,
 
+  "enableImageLogging": true,
+  "imageOutputPath": "./logs/frames/",
+  "imageLogOptions": {
+    "saveRawFrames": false,
+    "saveGrayFrames": true,
+    "saveDetectionResults": false,
+    "visualizeAllDetections": true
+  },
+
   "cameras": [
     {
       "id": 0,
@@ -101,7 +110,7 @@
       "d3": 0.0,
       "d4": 0.0,
       "d5": 0.0,
-      "active": true
+      "active": false
     }
   ]
 }

@@ -24,4 +24,12 @@ struct DetectionPipelineConfig {
 	double d5 = 0.0;
 	double quadDecimate = 0.0;
 	DetectionType detectionType = DetectionType::AprilTag;
+	
+	// Image Logging Konfiguration
+	bool enableImageLogging = false;
+	std::string imageOutputPath = "./logs/frames/";
+	bool saveRawFrames = false;
+	bool saveGrayFrames = false;
+	bool saveDetectionResults = false;
+	bool visualizeAllDetections = false;	// Visualisiere ALLE Detektionen
 };
