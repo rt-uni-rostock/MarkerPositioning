@@ -71,116 +71,59 @@ void UdpPublisher::initializeSocket(const std::string& address, uint16_t port)
 		throw std::runtime_error("Invalid UDP address");
 }
 
-// Sends a PipelineResult by serializing it into a byte buffer and transmitting it via UDP to the configured address and port.
-void UdpPublisher::send(const PipelineResult& result)
+// Sends a MarkerMessage by serializing it into a byte buffer and transmitting it via UDP to the configured address and port.
+void UdpPublisher::send(const MarkerMessage& message)
 {
 	std::array<uint8_t, UDP_PACKET_SIZE> buffer{};
-	serialize(result, buffer);
-	// calc buffer size
-	/*int bufferSize = static_cast<int>(buffer.size());
-	LOG_TRACE("Serialized PipelineResult into UDP packet of size {} bytes.", bufferSize);
+	serialize(message, buffer);
 
 	int sent = sendto(
 		socket_,
 		reinterpret_cast<const char*>(buffer.data()),
-		static_cast<int>(buffer.size()),
-		0,
-		reinterpret_cast<sockaddr*>(&destAddr_),
-		sizeof(destAddr_));*/
-
-	/*size_t used = ptr - buffer.data();
-
-	sendto(
-		socket_,
-		reinterpret_cast<const char*>(buffer.data()),
-		static_cast<int>(used),
-		0,
-		reinterpret_cast<sockaddr*>(&destAddr_),
-		sizeof(destAddr_));*/
-
-	//if (sent == SOCKET_ERROR)
-	//{
-	//	// Do not throw here in real-time context unless required.
-	//	std::cerr << "UDP send failed\n";
-	//}
-}
-
-// Serializes PipelineResult into fixed-size UDP packet.
-// TODO: define byte layout specification
-void UdpPublisher::serialize(const PipelineResult& r, std::array<uint8_t, UDP_PACKET_SIZE>& buffer) {
-	uint8_t* ptr = buffer.data();
-
-	auto write = [&](auto value)
-		{
-			std::memcpy(ptr, &value, sizeof(value));
-			ptr += sizeof(value);
-		};
-
-	//write(r.imageTimestamp);		//string, 24 bytes (ISO 8601 format)
-	//write(r.markerId);				//int32_t 4 bytes
-	//write(r.cameraId);				//int32_t 4 bytes
-	//write(r.markerType);			//int32_t 4 bytes
-	//write(r.errorCode);				//int32_t 4 bytes
-
-	double testval = -1;
-	double testval2 = 0;
-	uint8_t testval3 = 0;
-
-	write(static_cast<double>(r.rotX));					//float 8 bytes
-	write(static_cast<double>(r.rotZ));					//float 8 bytes
-	write(static_cast<double>(r.rotY));					//float 8 bytes
-	
-	write(testval);										//double 8 bytes
-
-	write(static_cast<double>(r.posX));					//float 8 bytes
-	write(static_cast<double>(r.posY));					//float 8 bytes
-	write(static_cast<double>(r.posZ));					//float 8 bytes
-
-	write(static_cast<uint8_t>(r.markerId));			// uint8_t 1 byte
-
-
-
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-		  
-	write(testval2);
-
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-
-	write(testval3);
-	
-
-
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-
-	write(testval2);
-
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-	write(testval2);					//float 4 bytes
-
-	write(testval3);
-	
-
-	size_t used = ptr - buffer.data();
-
-	int sent = sendto(
-		socket_,
-		reinterpret_cast<const char*>(buffer.data()),
-		static_cast<int>(used),
+		static_cast<int>(UDP_PACKET_SIZE),
 		0,
 		reinterpret_cast<sockaddr*>(&destAddr_),
 		sizeof(destAddr_));
 
 	if (sent == SOCKET_ERROR)
 	{
-		// Do not throw here in real-time context unless required.
-		std::cerr << "UDP send failed\n";
+		LOG_ERROR("UDP send failed for marker ID: {}", message.markerId);
 	}
+	else
+	{
+		LOG_TRACE("UDP message sent for marker ID: {} (size: {} bytes)", message.markerId, sent);
+	}
+}
 
+// Serializes MarkerMessage into fixed-size UDP packet.
+void UdpPublisher::serialize(const MarkerMessage& msg, std::array<uint8_t, UDP_PACKET_SIZE>& buffer) {
+	uint8_t* ptr = buffer.data();
+
+	auto write = [&](auto value)
+	{
+		std::memcpy(ptr, &value, sizeof(value));
+		ptr += sizeof(value);
+	};
+
+	// Serialize rotation
+	write(static_cast<double>(msg.rotX));
+	write(static_cast<double>(msg.rotZ));
+	write(static_cast<double>(msg.rotY));
+
+	// Reserved field
+	write(static_cast<double>(-1));
+
+	// Serialize position
+	write(static_cast<double>(msg.posX));
+	write(static_cast<double>(msg.posY));
+	write(static_cast<double>(msg.posZ));
+
+	// Marker ID
+	write(static_cast<uint8_t>(msg.markerId));
+
+	// Remaining fields can be extended as needed
+	double padding = 0.0;
+	for (int i = 0; i < 12; ++i) {
+		write(padding);
+	}
 }

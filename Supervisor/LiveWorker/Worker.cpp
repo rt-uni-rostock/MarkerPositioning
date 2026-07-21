@@ -1,7 +1,7 @@
 #include "Worker.h"
 #include "ImageSource/IImageSource.h"
 #include "DetectionPipeline.h"
-#include "DetectionResult.h"
+#include "PipelineResult.h"
 
 #include "Logger.h"
 
@@ -24,7 +24,7 @@ bool Worker::isIdle() const {
 
 // start worker thread for pipeline execution
 void Worker::start(uint64_t cycleId,
-	std::function<void(const DetectionResult&)> onSuccess,
+	std::function<void(const PipelineResult&)> onSuccess,
 	std::function<void(std::string)> onError) {
 
 	LOG_TRACE("Starting worker for cycle {}...", cycleId);
@@ -54,7 +54,7 @@ void Worker::start(uint64_t cycleId,
 
 			// detection pipeline
 			LOG_TRACE("Worker cycle {}: processing latest frame through detection pipeline...", cycleId);
-			DetectionResult result = pipeline_.process(latestFrame);
+			PipelineResult result = pipeline_.process(latestFrame);
 
 			// TODO: validation check, error handling
 

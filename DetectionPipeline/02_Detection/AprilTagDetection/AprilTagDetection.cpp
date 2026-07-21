@@ -41,6 +41,8 @@ DetectionResult AprilTagDetection::process(const ImageFrame& frame) {
 	LOG_TRACE("Processing frame with ID: {} in AprilTag Detection...", frame.frameId);
 
 	DetectionResult result;
+	result.frameId = frame.frameId;
+	result.timestamp = frame.timestamp;
 
 	if (frame.image.empty()) {
 		LOG_ERROR("Frame with ID: {} is empty, skipping detection.", frame.frameId);
@@ -74,11 +76,11 @@ DetectionResult AprilTagDetection::process(const ImageFrame& frame) {
 
 	Pose pose = detect(gray);
 
-	result.pose = pose;
+	// Füge erkannten Marker zum Vektor hinzu
+	if (pose.tagId != -1) {
+		result.detectedMarkers.push_back(pose);
+	}
 
-	result.frameId = frame.frameId;
-	result.timestamp = frame.timestamp;
-	result.markerId = pose.tagId;
 	result.success = pose.tagId != -1;
 
 	// Image Logging: Speichern des Frames mit Detection-Ergebnissen wenn aktiviert
@@ -86,7 +88,7 @@ DetectionResult AprilTagDetection::process(const ImageFrame& frame) {
 		cv::Mat annotatedImage = frame.image.clone();
 		
 		if (config_.visualizeAllDetections) {
-			// Führe eigenständige Erkennung durch um alle Tags zu visualisieren
+			// Führe eigenstände Erkennung durch um alle Tags zu visualisieren
 			image_u8_t img_header = { gray.cols, gray.rows, gray.cols, gray.data };
 			zarray_t* allDetections = apriltag_detector_detect(td, &img_header);
 			drawAllDetections(annotatedImage, allDetections, pose.tagId);  // Übergebe ausgewählte Tag-ID

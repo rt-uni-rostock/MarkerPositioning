@@ -1,6 +1,7 @@
 #pragma once
 #include "PipelineResult.h"
 #include <cstdint>
+#include <string>
 
 enum class LogEventType {
 	Result = 0,
@@ -10,14 +11,14 @@ enum class LogEventType {
 
 // Logging event used internally by the sink.
 // It allows logging of:
-// - normal pipeline results
-// - drop events (when udp overrides pending result)
+// - normal pipeline results (may contain multiple detected markers)
+// - drop events (when a camera's previous unsent PipelineResult is overwritten)
 
 struct LogEvent {
 	LogEventType type;
 
-	PipelineResult result; // valid if type == Result
-	PipelineResult dropped; // valid if type == Drop
+	PipelineResult result;  // valid if type == Result (contains list of detected markers)
+	PipelineResult dropped; // valid if type == Drop (the overwritten pipeline result)
 
 	uint64_t dropCount = 0; // valid if type == Drop
 

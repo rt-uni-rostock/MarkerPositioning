@@ -1,5 +1,6 @@
 #pragma once
 #include "LogEvent.h"
+#include "02_Detection/Pose.h"
 #include <sqlite3.h>
 #include <string>
 
@@ -31,6 +32,9 @@ private:
 	void createTableIfNeeded();
 	// prepares the insert statement for logging events, called in constructor
 	void prepareStatements();
+	// logs a single row for a Result event: either for a specific marker pose,
+	// or for a "no marker" case (pose == nullptr, markerId typically -1)
+	void logResultRow(const std::string& eventTimestamp, const PipelineResult& r, int markerId, const Pose* pose);
 
 	// sqlite database connection and prepared statement handle
 	sqlite3* db_ = nullptr;

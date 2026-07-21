@@ -1,6 +1,7 @@
 #include "DetectionPipeline.h"
 
 #include "DetectionResult.h"
+#include "PipelineResult.h"
 #include "ImageSource/ImageFrame.h"
 
 #include "01_Preprocessing/Preprocessing.h"
@@ -8,6 +9,9 @@
 #include "03_PostProcessing/PostProcessing.h"
 
 #include "Logger.h"
+
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/fmt/chrono.h>
 
 // Constructor: 
 DetectionPipeline::DetectionPipeline(const DetectionPipelineConfig& config) : config_(config)
@@ -24,24 +28,39 @@ DetectionPipeline::~DetectionPipeline()
 	// Destructor implementation
 }
 
-DetectionResult DetectionPipeline::process(ImageFrame& frame)
+PipelineResult DetectionPipeline::process(ImageFrame& frame)
 {
 	// Preprocesing step
 	LOG_INFO("PreProcessing frame with ID: {}", frame.frameId);
 	ImageFrame preprocessedFrame = preprocessor_->process(frame);
 
 	// Detection step
-
 	LOG_INFO("Detecting in frame with ID: {}", frame.frameId);
 	DetectionResult rawResult = detector_->process(preprocessedFrame);
 
-	LOG_INFO("Detection completed for frame ID: {}, success: {}, marker ID: {}", frame.frameId, rawResult.success, rawResult.markerId);
-	LOG_INFO("Raw detection result: posx={}, posy={}, posz={}, roll={}, pitch={}, yaw={}", rawResult.pose.x, rawResult.pose.y, rawResult.pose.z, rawResult.pose.roll, rawResult.pose.pitch, rawResult.pose.yaw);
+	LOG_INFO("Detection completed for frame ID: {}, success: {}, marker count: {}",
+		frame.frameId, rawResult.success, rawResult.detectedMarkers.size());
 
 	// Postprocessing step
 	LOG_INFO("PostProcessing detection result for frame with ID: {}", frame.frameId);
 	DetectionResult finalResult = postprocessor_->process(rawResult);
 
 	LOG_TRACE("Finished processing frame with ID: {}", frame.frameId);
-	return finalResult;
+
+	return toPipelineResult(finalResult);
+}
+
+// Converts a DetectionResult (internal, detection-centric) into a PipelineResult
+// (external, transport structure passed to supervisor/sink).
+PipelineResult DetectionPipeline::toPipelineResult(const DetectionResult& detectionResult) const
+{
+	PipelineResult result;
+	result.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), detectionResult.timestamp);
+	result.cameraId = config_.cameraId;
+	result.markerType = 0;
+	result.errorCode = detectionResult.success ? 0 : 1;
+	result.errorMessage = detectionResult.success ? "" : detectionResult.message;
+	result.detectedMarkers = detectionResult.detectedMarkers;
+
+	return result;
 }

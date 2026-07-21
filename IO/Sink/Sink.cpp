@@ -1,6 +1,8 @@
 #include "Sink.h"
+#include "MarkerMessage.h"
 #include "Logger.h"
 #include <chrono>
+#include <ctime>
 
 #include <spdlog/fmt/bundled/format.h>
 #include <spdlog/fmt/chrono.h>
@@ -10,13 +12,11 @@
 Sink::Sink(const SinkConfig& config) : config_(config)
 {
 	LOG_TRACE("Initializing Sink...");
-	// enable udp send
 	if (config_.udpEnabled) {
 		LOG_TRACE("Enable UDP sending to {}:{}", config_.udpAddress, config_.udpPort);
 		udpPublisher_ = std::make_unique<UdpPublisher>(config_.udpAddress, config_.udpPort);
 	}
 
-	// enable logging
 	if (config_.loggingEnabled) {
 		LOG_TRACE("Enable logging to SQLite database at {}", config_.sqliteFilePath);
 		resultLogger_ = std::make_unique<ResultLogger>(config_.sqliteFilePath);
@@ -65,10 +65,10 @@ bool Sink::stop()
 	running_ = false;
 
 	bool success = true;
-	
-	// notify logging thread in case it's waiting for new events, this will allow it to exit if we are shutting down
+
+	udpCv_.notify_all();
 	loggingCv_.notify_all();
-	LOG_TRACE("Notified logging thread to wake up for shutdown.");
+	LOG_TRACE("Notified worker threads to wake up for shutdown.");
 
 	if (udpThread_.joinable()) {
 		try {
@@ -98,32 +98,39 @@ bool Sink::stop()
 	return success;
 }
 
-// send a pipeline result to both the udp publisher and the logger, if they are enabled in the config
-void Sink::send(const PipelineResult& result)
+// send a pipeline result for a specific camera: overwrite latest-only slot (UDP),
+// enqueue full history entry (logging). Non-blocking for the calling (worker) thread.
+void Sink::send(uint8_t cameraId, const PipelineResult& result)
 {
-	LOG_TRACE("Sending results to sink...");
-	// udp
+	LOG_TRACE("Sending pipeline result for camera {} to sink...", cameraId);
+
+	// udp: latest-only per camera
 	if (config_.udpEnabled) {
 		std::lock_guard<std::mutex> lock(udpMutex_);
-		// if we already have a result waiting to be sent, it means we are dropping it, so we increment the drop counter
-		if (udpLatest_.has_value()) {
-			LogEvent dropEvent;
-			dropEvent.type = LogEventType::Drop;
-			dropEvent.dropped = *udpLatest_;  // ← WICHTIG
-			dropEvent.eventTimestamp = getCurrentTimestamp();
-			dropEvent.dropCount = 1;
 
-			{
-				std::lock_guard<std::mutex> lock(loggingMutex_);
+		auto it = udpLatestPerCamera_.find(cameraId);
+		if (it != udpLatestPerCamera_.end()) {
+			// previous result for this camera was not sent yet -> drop it, log the drop
+			if (config_.loggingEnabled) {
+				LogEvent dropEvent;
+				dropEvent.type = LogEventType::Drop;
+				dropEvent.dropped = it->second;
+				dropEvent.dropCount = 1;
+				dropEvent.eventTimestamp = getCurrentTimestamp();
+
+				std::lock_guard<std::mutex> logLock(loggingMutex_);
 				loggingQueue_.push(dropEvent);
+				loggingCv_.notify_one();
 			}
-			LOG_WARN("Dropping result for markerId {} due to UDP send backlog.", result.markerId);
+			LOG_WARN("Dropping previous unsent UDP result for camera {} (backlog).", cameraId);
 		}
-		udpLatest_ = result;
-		LOG_TRACE("Result for markerId {} queued for UDP sending.", result.markerId);
+
+		udpLatestPerCamera_[cameraId] = result;
+		udpCv_.notify_one();
+		LOG_TRACE("Result for camera {} queued for UDP sending.", cameraId);
 	}
 
-	// logging
+	// logging: always recorded, never dropped
 	if (config_.loggingEnabled) {
 		LogEvent event;
 		event.type = LogEventType::Result;
@@ -135,171 +142,147 @@ void Sink::send(const PipelineResult& result)
 			loggingQueue_.push(event);
 		}
 
-		// notify logging thread that we have a new event to process
 		loggingCv_.notify_one();
-		LOG_TRACE("Result for markerId {} queued for logging.", result.markerId);
+		LOG_TRACE("Result for camera {} with {} markers queued for logging.", cameraId, result.detectedMarkers.size());
 	}
 }
 
-// worker thread, sends results via udp
+// single shared worker thread: sequentially iterates all cameras with pending
+// results, and for each camera all detected markers, sending one UDP message
+// per marker. This is fast enough in practice (a few microseconds per sendto())
+// to finish well before the next pipeline cycle produces new results.
 void Sink::udpWorkerLoop() {
 	LOG_TRACE("UDP worker thread started, entering main loop...");
 	while (running_) {
-		// get the latest result to send, if any, and reset it
-		std::optional<PipelineResult> resultToSend;
+		std::unordered_map<uint8_t, PipelineResult> resultsToSend;
 
 		{
-			std::lock_guard<std::mutex> lock(udpMutex_);
+			std::unique_lock<std::mutex> lock(udpMutex_);
+			udpCv_.wait_for(lock, std::chrono::milliseconds(10), [&] {
+				return !udpLatestPerCamera_.empty() || !running_;
+				});
 
-			if (udpLatest_.has_value()) {
-				resultToSend = udpLatest_;
-				udpLatest_.reset();
-				LOG_TRACE("UDP worker retrieved result for markerId {} to send.", resultToSend->markerId);
-			}
+			// take a snapshot of all pending camera results, then clear the map
+			resultsToSend.swap(udpLatestPerCamera_);
 		}
 
-		// if we have a result to send, send it via udp
-		if (resultToSend.has_value()) {
-			try {
-				LOG_TRACE("UDP worker sending result...");
-				udpPublisher_->send(*resultToSend);
-			}
-			catch (const std::exception& ex) {
-				LOG_ERROR("UDP send failed: {}", ex.what());
-				udpErrorCounter_++;
+		// sequential loop: camera by camera, marker by marker
+		for (const auto& [cameraId, result] : resultsToSend) {
+			for (const auto& pose : result.detectedMarkers) {
+				MarkerMessage msg;
+				msg.imageTimestamp = result.imageTimestamp;
+				msg.markerId = pose.tagId;
+				msg.cameraId = result.cameraId;
+				msg.markerType = result.markerType;
+				msg.errorCode = result.errorCode;
+				msg.errorMessage = result.errorMessage;
+				msg.posX = pose.x;
+				msg.posY = pose.y;
+				msg.posZ = pose.z;
+				msg.rotX = pose.roll;
+				msg.rotY = pose.pitch;
+				msg.rotZ = pose.yaw;
 
-				if (config_.loggingEnabled)
+				try {
+					LOG_TRACE("UDP worker sending marker message for camera {}, markerId {}...", cameraId, msg.markerId);
+					udpPublisher_->send(msg);
+				}
+				catch (const std::exception& ex) {
+					LOG_ERROR("UDP send failed for camera {}: {}", cameraId, ex.what());
+					udpErrorCounter_++;
+
+					if (config_.loggingEnabled)
+					{
+						LogEvent err;
+						err.type = LogEventType::SystemError;
+						err.systemMessage = fmt::format("UDP send failed for camera {}: {}", cameraId, ex.what());
+						err.eventTimestamp = getCurrentTimestamp();
+
+						std::lock_guard<std::mutex> lock(loggingMutex_);
+						loggingQueue_.push(err);
+						loggingCv_.notify_one();
+						LOG_WARN("Logged UDP send error to logging queue.");
+					}
+				}
+				catch (...)
 				{
-					LogEvent err;
-					err.type = LogEventType::SystemError; // or introduce System type
-					err.systemMessage = std::string("UDP send failed: ") + ex.what();
-					err.eventTimestamp = getCurrentTimestamp();
-
-					std::lock_guard<std::mutex> lock(loggingMutex_);
-					loggingQueue_.push(err);
-					loggingCv_.notify_one();
-					LOG_WARN("Logged UDP send error to logging queue.");
+					LOG_ERROR("UDP send failed for camera {} with unknown error.", cameraId);
+					udpErrorCounter_++;
 				}
 			}
-			catch (...)
-			{
-				LOG_ERROR("UDP send failed with unknown error.");
-				udpErrorCounter_++;
-			}
-		}
-		else {
-			LOG_TRACE("UDP worker has no result to send, sleeping briefly to avoid busy waiting.");
-			// avoid busy waiting
-			// TODO: could also be configured via sink config
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
 	}
+	LOG_TRACE("UDP worker thread exiting.");
 }
 
-// worker thread, batches log events and writes them to sqlite, also handles logging of udp drops
+// worker thread, batches log events and writes them to sqlite
 void Sink::loggingWorkerLoop() {
-
 	LOG_TRACE("Logging worker thread started, entering main loop...");
-
-	// batch configuration from config file
-	// batch size determines how many log events we write to sqlite in one transaction, larger batches can improve performance but increase latency
-	const size_t BATCH_SIZE = config_.batchSize;
-	// batch timeout determines how long we wait for a batch to fill up before writing it to sqlite, this ensures that we don't wait indefinitely if the event rate is low
-	const auto BATCH_TIMEOUT = std::chrono::milliseconds(config_.batchTimeoutMs);
-
-	// main loop runs until we are no longer running and there are no more log events to process
-	while (running_ || !loggingQueue_.empty()) {
-
-		LOG_TRACE("Logging worker is running and queue has logging objects. Waiting for logging");
-
-		// creates batch vector to hold log events, we reserve space for the batch size to avoid reallocations. not a fixed size, we can have less or more events in batch
+	while (running_) {
 		std::vector<LogEvent> batch;
-		batch.reserve(BATCH_SIZE);
 
-		// locks mutex, until wait_for condition is not met
-		std::unique_lock<std::mutex> lock(loggingMutex_);
-
-		// wait with thread until we have work or shutdown. wait max batch timeout. wakes up and checks condition when notified
-		loggingCv_.wait_for(lock, BATCH_TIMEOUT, [&] {
-			return !loggingQueue_.empty() || !running_;
-			});
-
-		// collect batch
-		while (!loggingQueue_.empty() && batch.size() < BATCH_SIZE) {
-			LOG_TRACE("Logging worker adding event to batch, current batch size: {}", batch.size());
-			batch.push_back(loggingQueue_.front());
-			loggingQueue_.pop();
-		}
-
-		lock.unlock();
-
-		// if we have no events to log, we can skip the sqlite transaction
-		if (batch.empty()) {
-			LOG_TRACE("Logging worker woke up but no events to log, going back to waiting.");
-			continue;
-		}
-
-		// sqlite transaction for batch insert
-		// begin transaction, log all events in batch, commit transaction. if any error occurs, we catch it and can decide how to handle it (e.g. retry, log to file, etc.)
-		try {
-			LOG_TRACE("Logging worker starting SQLite transaction for batch of {} events.", batch.size());
-			resultLogger_->beginTransaction();
-
-			for (const auto& event : batch) {
-				resultLogger_->logEvent(event);
-			}
-
-			resultLogger_->commitTransaction();
-		}
-		catch (const std::exception& ex)
 		{
-			LOG_ERROR("SQLite transaction failed: {}", ex.what());
-			loggingErrorCounter_++;
+			std::unique_lock<std::mutex> lock(loggingMutex_);
+			loggingCv_.wait_for(lock, std::chrono::milliseconds(config_.batchTimeoutMs), [&] {
+				return loggingQueue_.size() >= config_.batchSize || !running_;
+				});
 
-			// Attempt to rollback
-			LOG_TRACE("Attempting to rollback SQLite transaction after failure...");
-			try
-			{
-				resultLogger_->rollbackTransaction();
+			while (!loggingQueue_.empty() && batch.size() < config_.batchSize) {
+				batch.push_back(std::move(loggingQueue_.front()));
+				loggingQueue_.pop();
 			}
-			catch (...) {
-				LOG_ERROR("SQLite transaction rollback failed.");
-			}
-
-			if (!resultLogger_->isHealthy()) {
-				LOG_ERROR("ResultLogger is unhealthy after transaction failure, stopping logging worker thread.");
-				break;
-			}
-
-			LOG_TRACE("SQLite transaction failure handled, logging worker will continue processing future events.");
-			// Optional: short sleep to avoid tight failure loop
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		}
-		catch (...)
-		{
-			LOG_ERROR("SQLite transaction failed with unknown error.");
-			loggingErrorCounter_++;
-
-			try
-			{
-				LOG_TRACE("Attempting to rollback SQLite transaction after unknown failure...");
-				resultLogger_->rollbackTransaction();
-			}
-			catch (...) {
-				LOG_ERROR("SQLite transaction rollback failed after unknown error.");
-			}
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 
+		if (!batch.empty() && resultLogger_) {
+			try {
+				resultLogger_->beginTransaction();
+				for (const auto& event : batch) {
+					resultLogger_->logEvent(event);
+				}
+				resultLogger_->commitTransaction();
+			}
+			catch (const std::exception& ex) {
+				LOG_ERROR("Logging batch failed: {}", ex.what());
+				loggingErrorCounter_++;
+				try {
+					resultLogger_->rollbackTransaction();
+				}
+				catch (...) {
+					LOG_ERROR("Rollback after failed logging batch also failed.");
+				}
+			}
+		}
 	}
+
+	// flush remaining events on shutdown
+	if (resultLogger_) {
+		std::vector<LogEvent> remaining;
+		{
+			std::lock_guard<std::mutex> lock(loggingMutex_);
+			while (!loggingQueue_.empty()) {
+				remaining.push_back(std::move(loggingQueue_.front()));
+				loggingQueue_.pop();
+			}
+		}
+		if (!remaining.empty()) {
+			try {
+				resultLogger_->beginTransaction();
+			 for (const auto& event : remaining) {
+					resultLogger_->logEvent(event);
+				}
+				resultLogger_->commitTransaction();
+			}
+			catch (const std::exception& ex) {
+				LOG_ERROR("Final logging flush failed: {}", ex.what());
+			}
+		}
+	}
+
+	LOG_TRACE("Logging worker thread exiting.");
 }
 
+// returns current timestamp as ISO 8601 string
 std::string Sink::getCurrentTimestamp() const
 {
-	auto now = std::chrono::system_clock::now();
-	auto formatted = fmt::format(fmt::runtime("{:%FT%TZ}"), now);
-
-	LOG_TRACE("Generating current timestamp for logging, current time is: {}", formatted);
-	return fmt::format(fmt::runtime("{:%FT%TZ}"), now);
+	return fmt::format(fmt::runtime("{:%FT%TZ}"), std::chrono::system_clock::now());
 }

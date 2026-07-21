@@ -3,54 +3,56 @@
 #include "UdpPublisher.h"
 #include "ResultLogger.h"
 #include "LogEvent.h"
+#include "PipelineResult.h"
 
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <queue>
-#include <optional>
+#include <unordered_map>
 #include <atomic>
+#include <memory>
+#include <cstdint>
 
 // Sink orchestrates:
-//  - UDP sending (latest-only)
-//  - Logging (full history + batching)
-// uses two seperate worker threads.
+//  - UDP sending: single shared thread + single socket, latest-only per camera
+//    (no queueing). If a new result arrives for a camera whose previous result
+//    was not sent yet, the old one is overwritten and a Drop event is logged.
+//    Sending is sequential (camera by camera, marker by marker) - this is fast
+//    enough (a few microseconds per sendto()) to reliably finish before the
+//    next pipeline cycle in practice.
+//  - Logging: full history, batched writes, separate thread.
 
 class Sink
 {
 public:
-	// Constructor and destructor
 	explicit Sink(const SinkConfig& config);
 	~Sink();
 
-	// start and stop the worker threads, they will run until stop() is called
 	bool start();
 	bool stop();
 
-	// main send method, can be called by supervisor to send pipeline results to sink
-	void send(const PipelineResult& result);
+	// send a pipeline result for a specific camera to the sink (UDP latest-only + logging).
+	void send(uint8_t cameraId, const PipelineResult& result);
 
 private:
-	// worker thread methods
 	void udpWorkerLoop();
 	void loggingWorkerLoop();
 
 	std::string getCurrentTimestamp() const;
 
-	// configuration object, contains settings for udp and logging
 	SinkConfig config_;
-
-	// atomic flag to control the running state of the worker threads
 	std::atomic<bool> running_{ false };
 
-	// udp path
+	// udp path: single thread, single socket, latest-only per camera
 	std::thread udpThread_;
 	std::mutex udpMutex_;
-	std::optional<PipelineResult> udpLatest_;
+	std::condition_variable udpCv_;
+	std::unordered_map<uint8_t, PipelineResult> udpLatestPerCamera_;
 	std::unique_ptr<UdpPublisher> udpPublisher_;
 	std::atomic<uint64_t> udpErrorCounter_{ 0 };
 
-	// logging path
+	// logging path: shared queue, separate thread
 	std::thread loggingThread_;
 	std::mutex loggingMutex_;
 	std::condition_variable loggingCv_;

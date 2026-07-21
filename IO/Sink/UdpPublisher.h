@@ -1,5 +1,5 @@
 #pragma once
-#include "PipelineResult.h"
+#include "MarkerMessage.h"
 #include <array>
 #include <string>
 #include <cstdint>
@@ -23,19 +23,15 @@ public:
 	UdpPublisher(const std::string& address, uint16_t port);
 	~UdpPublisher();
 
-	// sends PipelineResult as serialized byte buffer via UDP to configured address and port
-	void send(const PipelineResult& result);
+	// sends a single MarkerMessage as serialized byte buffer via UDP to configured address and port
+	void send(const MarkerMessage& message);
 
 private:
 
-	static constexpr size_t UDP_PACKET_SIZE =
-		22 * sizeof(double);
+	static constexpr size_t UDP_PACKET_SIZE = 22 * sizeof(double);
 
-	/*sizeof(std::string) +
-		4 * sizeof(int32_t) +*/
-
-	// Serializes PipelineResult into fixed-size UDP packet.
-	void serialize(const PipelineResult& result, std::array<uint8_t, UDP_PACKET_SIZE>& buffer);
+	// Serializes MarkerMessage into fixed-size UDP packet.
+	void serialize(const MarkerMessage& message, std::array<uint8_t, UDP_PACKET_SIZE>& buffer);
 
 	void initializeSocket(const std::string& address, uint16_t port);
 
@@ -48,5 +44,4 @@ private:
 	// UDP socket file descriptor and target address structure
 	SocketType socket_;
 	struct sockaddr_in destAddr_;
-
 };

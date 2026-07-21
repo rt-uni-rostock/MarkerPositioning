@@ -6,7 +6,7 @@
 
 class IImageSource;
 class DetectionPipeline;
-struct DetectionResult;
+struct PipelineResult;
 
 enum class WorkerState
 {
@@ -22,7 +22,7 @@ public:
 	bool isIdle() const;
 
 	void start(uint64_t cycleId,
-		std::function<void(const DetectionResult&)> onSuccess,
+		std::function<void(const PipelineResult&)> onSuccess,
 		std::function<void(std::string)> onError);
 	std::chrono::steady_clock::time_point startTime() const;
 

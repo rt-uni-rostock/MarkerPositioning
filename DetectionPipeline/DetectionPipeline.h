@@ -5,6 +5,7 @@
 
 struct ImageFrame;
 struct DetectionResult;
+struct PipelineResult;
 
 class Preprocessing;
 class Detection;
@@ -19,12 +20,15 @@ public:
 	DetectionPipeline(const DetectionPipeline&) = delete;
 	DetectionPipeline& operator=(const DetectionPipeline&) = delete;
 
-	// Process an image frame and return the detection result
-	DetectionResult process(ImageFrame& frame);
+	// Process an image frame and return the pipeline result (contains list of detected markers)
+	PipelineResult process(ImageFrame& frame);
 
 	// Get the camera ID associated with this pipeline
 	int getCameraId() const { return config_.cameraId; }
 private:
+	// Converts the internal DetectionResult into the external PipelineResult
+	PipelineResult toPipelineResult(const DetectionResult& detectionResult) const;
+
 	DetectionPipelineConfig config_;
 	
 	std::unique_ptr<Preprocessing> preprocessor_;

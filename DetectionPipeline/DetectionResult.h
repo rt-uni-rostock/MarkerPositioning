@@ -2,19 +2,17 @@
 
 #include <string>
 #include <chrono>
+#include <vector>
 #include "02_Detection/Pose.h"
 
 struct DetectionResult
 {
 	bool success = false;
-	int markerId = -1;
 	int frameId = -1;
 	std::chrono::system_clock::time_point timestamp;
 
-	Pose pose{ 0,0,0,0,0,0 };
-
-	// TODO: Markerpose hinzufügen
-	// TODO: Confidence hinzufügen
+	// Unterstützung für mehrere Marker pro Frame
+	std::vector<Pose> detectedMarkers;
 
 	std::string message;
 };

@@ -207,6 +207,7 @@ target_include_directories(Sink PUBLIC
 target_link_libraries(Sink PUBLIC
     sqlite3
     Helper
+    DetectionPipeline
 )
 
 # =============================================================

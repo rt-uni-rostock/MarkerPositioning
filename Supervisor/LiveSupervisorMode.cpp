@@ -3,7 +3,7 @@
 #include "ImageSource/IImageSource.h"
 #include "Sink.h"
 #include "Worker.h"
-#include "DetectionResult.h"
+#include "PipelineResult.h"
 #include "Logger.h"
 #include "GeneralSettings.h"
 #include <cmath>
@@ -192,33 +192,20 @@ void LiveSupervisorMode::handleCycle() {
 		
 		worker->start(
 			cycleId,
-			[this, cycleId, worker, cameraId = cam.id](const DetectionResult& result) {
-				LOG_INFO("Worker completed successfully for camera {} in cycle {}, result: {}", cameraId, cycleId, result.markerId);
-				
+			[this, cycleId, worker, cameraId = cam.id](const PipelineResult& result) {
+				LOG_INFO("Worker completed successfully for camera {} in cycle {}, marker count: {}",
+					cameraId, cycleId, result.detectedMarkers.size());
+
 				bool withinDeadline = isWorkerWithinDeadline(worker, cycleId);
 
 				std::string message = "";
-				if (!result.success) 
+				if (result.errorCode != 0)
 					message += "Detection failed for cycle " + std::to_string(cycleId) + ".";
-				if (!withinDeadline) 
+				if (!withinDeadline)
 					message += " Worker missed deadline for cycle " + std::to_string(cycleId) + ".";
 
-				PipelineResult pipelineResult;
-				pipelineResult.imageTimestamp = fmt::format(fmt::runtime("{:%FT%TZ}"), result.timestamp);
-				pipelineResult.markerId = result.markerId;
-				pipelineResult.cameraId = cameraId; // now using the actual camera id
-				pipelineResult.markerType = 0;
-				pipelineResult.errorCode = result.success ? 0 : 1;
-				pipelineResult.errorMessage = result.success ? "" : "Detection failed";
-				pipelineResult.posX = result.pose.x;
-				pipelineResult.posY = result.pose.y;
-				pipelineResult.posZ = result.pose.z;
-				pipelineResult.rotX = result.pose.roll;
-				pipelineResult.rotY = result.pose.pitch;
-				pipelineResult.rotZ = result.pose.yaw;
-				
-				// send pipeline result to sink
-				sink_.send(pipelineResult);
+				// send pipeline result to sink: latest-only UDP fan-out per marker + full logging
+				sink_.send(cameraId, result);
 			},
 			[this, cycleId, cameraId = cam.id](const std::string& err) {
 				LOG_ERROR("Worker failed for camera {} in cycle {}, error: {}", cameraId, cycleId, err);
@@ -228,7 +215,7 @@ void LiveSupervisorMode::handleCycle() {
 				pipelineResult.cameraId = cameraId;
 				pipelineResult.errorCode = 1;
 				pipelineResult.errorMessage = err;
-				sink_.send(pipelineResult);
+				sink_.send(cameraId, pipelineResult);
 			}
 		);
 	}
