@@ -72,9 +72,7 @@ void Worker::start(uint64_t cycleId,
 		state_ = WorkerState::Idle;
 		});
 
-	// detach thread to allow independent execution
-	LOG_TRACE("Worker cycle {}: detaching thread for independent execution...", cycleId);
-	thread_.detach();
+	LOG_TRACE("Worker cycle {}: thread started.", cycleId);
 }
 
 // get start time of current execution

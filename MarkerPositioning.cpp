@@ -152,9 +152,13 @@ int main()
             pipelineConfig.saveDetectionResults = settings.imageLogOptions.saveDetectionResults;
             pipelineConfig.visualizeAllDetections = settings.imageLogOptions.visualizeAllDetections;
             
-            auto pipeline = std::make_unique<DetectionPipeline>(std::move(pipelineConfig));
+            // Create two pipeline instances per camera — one per worker — so they can
+            // run concurrently without sharing mutable internal detector state.
+            auto pipeline1 = std::make_unique<DetectionPipeline>(pipelineConfig);
+            auto pipeline2 = std::make_unique<DetectionPipeline>(std::move(pipelineConfig));
 
-            pipelines.push_back(std::move(pipeline));
+            pipelines.push_back(std::move(pipeline1));
+            pipelines.push_back(std::move(pipeline2));
 		}
 
         // Erstelle Vektor mit Raw-Pointern für den Supervisor

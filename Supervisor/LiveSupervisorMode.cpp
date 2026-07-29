@@ -33,19 +33,21 @@ LiveSupervisorMode::LiveSupervisorMode(
 		if (cam.active) {
 			LOG_TRACE("Creating workers for camera {}...", cam.id);
 
-			// select camera specific pipeline
-			DetectionPipeline* pipeline = nullptr;
+			// collect all pipelines for this camera (expect two — one per worker)
+			std::vector<DetectionPipeline*> cameraPipelines;
 			for (const auto& p : pipelines_) {
 				if (p->getCameraId() == cam.id) {
-					pipeline = p;
-					break;
+					cameraPipelines.push_back(p);
 				}
 			}
 
-			if (pipeline != nullptr) {
-				// Worker erwartet eine Referenz (&), daher den Pointer einmal dereferenzieren (*pipeline)
-				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *pipeline, cam.id));
-				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *pipeline, cam.id));
+			if (cameraPipelines.size() >= 2) {
+				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *cameraPipelines[0], cam.id));
+				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *cameraPipelines[1], cam.id));
+			} else if (cameraPipelines.size() == 1) {
+				LOG_WARN("Only one pipeline found for camera {}, both workers will share it.", cam.id);
+				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *cameraPipelines[0], cam.id));
+				workers_.emplace_back(std::make_unique<Worker>(*imgSources_[idx], *cameraPipelines[0], cam.id));
 			} else {
 				LOG_ERROR("No pipeline found for camera ID {}", cam.id);
 			}
