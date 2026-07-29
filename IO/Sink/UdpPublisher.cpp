@@ -87,11 +87,11 @@ void UdpPublisher::send(const MarkerMessage& message)
 
 	if (sent == SOCKET_ERROR)
 	{
-		LOG_ERROR("UDP send failed for marker ID: {}", message.markerId);
+		LOG_ERROR("UDP send failed for marker ID: {} (camera ID: {})", message.markerId, message.cameraId);
 	}
 	else
 	{
-		LOG_TRACE("UDP message sent for marker ID: {} (size: {} bytes)", message.markerId, sent);
+		LOG_TRACE("UDP message sent for marker ID: {} (camera ID: {}, size: {} bytes)", message.markerId, message.cameraId, sent);
 	}
 }
 
@@ -121,9 +121,12 @@ void UdpPublisher::serialize(const MarkerMessage& msg, std::array<uint8_t, UDP_P
 	// Marker ID
 	write(static_cast<uint8_t>(msg.markerId));
 
+	// Kamera-ID
+	write(static_cast<double>(msg.cameraId));
+
 	// Remaining fields can be extended as needed
 	double padding = 0.0;
-	for (int i = 0; i < 12; ++i) {
+	for (int i = 0; i < 11; ++i) {
 		write(padding);
 	}
 }

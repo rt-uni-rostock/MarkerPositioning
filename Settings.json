@@ -7,15 +7,15 @@
   "udpPort": 5001,
 
   "tagType": 0,
-  "tagSize": 0.75,
-  "tagID": 11,
+  "tagSize": 0.12,
+  "tagID": 17,
 
   "enableImageLogging": true,
   "imageOutputPath": "./logs/frames/",
   "imageLogOptions": {
     "saveRawFrames": false,
-    "saveGrayFrames": true,
-    "saveDetectionResults": false,
+    "saveGrayFrames": false,
+    "saveDetectionResults": true,
     "visualizeAllDetections": true
   },
 
@@ -107,6 +107,21 @@
       "cy": 9.643093839547967e+02,
       "d1": 0.013589822249874,
       "d2": -0.002981570277959,
+      "d3": 0.0,
+      "d4": 0.0,
+      "d5": 0.0,
+      "active": false
+    },
+    {
+      "id": 6,
+      "streamType": 1,
+      "name": "LUCID TRI023S",
+      "fx": 5.257859531326196e+02,
+      "fy": 5.257811198616116e+02,
+      "cx": 9.393089372836616e+02,
+      "cy": 5.623685625229616e+02,
+      "d1": 0.016623032532297,
+      "d2": -0.002387892665655,
       "d3": 0.0,
       "d4": 0.0,
       "d5": 0.0,
