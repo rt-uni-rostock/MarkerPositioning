@@ -30,7 +30,7 @@ bool StaticImageSource::start()
 	LOG_TRACE("StaticImageSource is starting.");
 	running_ = true;
 
-	return false;
+	return true;
 }
 
 bool StaticImageSource::stop()
@@ -45,7 +45,7 @@ bool StaticImageSource::stop()
 
 	running_ = false;
 
-	return false;
+	return true;
 }
 
 ImageFrame StaticImageSource::getLatestFrame()

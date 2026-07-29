@@ -67,8 +67,11 @@ void UdpPublisher::initializeSocket(const std::string& address, uint16_t port)
 	destAddr_.sin_family = AF_INET;
 	destAddr_.sin_port = htons(port);
 
-	if (inet_pton(AF_INET, address.c_str(), &destAddr_.sin_addr) <= 0)
+	if (inet_pton(AF_INET, address.c_str(), &destAddr_.sin_addr) <= 0) {
+		CLOSE_SOCKET(socket_);
+		socket_ = INVALID_SOCKET;
 		throw std::runtime_error("Invalid UDP address");
+	}
 }
 
 // Sends a MarkerMessage by serializing it into a byte buffer and transmitting it via UDP to the configured address and port.

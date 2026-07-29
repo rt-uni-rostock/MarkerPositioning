@@ -116,7 +116,7 @@ Pose AprilTagDetection::detect(const cv::Mat& gray) {
 	// Prüfen, ob das Bild nicht leer ist
 	if (gray.empty()) {
 		LOG_ERROR("Grayscale image is empty, cannot perform detection.");
-		return Pose{ 0,0,0,0,0,0 };
+		return Pose{ 0,0,0,0,0,0,-1 };
 	}
 
 	// Bild in apriltag_image_t umwandeln
@@ -145,7 +145,8 @@ Pose AprilTagDetection::selectDetectionResult(zarray_t* detections, int required
 
 	LOG_TRACE("Selecting detection result. Number of detections: {}, required tag ID: {}...", zarray_size(detections), required_tag_id);
 
-	AprilTagWithPose* selectedTag = nullptr;
+	bool found = false;
+	AprilTagWithPose bestTag{};
 
 	apriltag_detection_t* det;
 
@@ -153,58 +154,70 @@ Pose AprilTagDetection::selectDetectionResult(zarray_t* detections, int required
 
 		zarray_get(detections, i, &det);
 
-		if (det->id == required_tag_id) {
+		if (det->id != required_tag_id)
+			continue;
 
-			LOG_TRACE("Found detection with required tag ID: {}, calculating pose...", det->id);
+		LOG_TRACE("Found detection with required tag ID: {}, calculating pose...", det->id);
 
-			info.det = det;
+		info.det = det;
 
-			apriltag_pose_t pose_result;
-			double pose_err = estimate_tag_pose(&info, &pose_result);
+		apriltag_pose_t pose_result;
+		double pose_err = estimate_tag_pose(&info, &pose_result);
 
-			LOG_TRACE("Calculated pose for tag ID {}.", det->id);
+		LOG_TRACE("Calculated pose for tag ID {}.", det->id);
 
-			if (!selectedTag || pose_err < selectedTag->pose_err) {
-				if (!selectedTag) {
-					LOG_TRACE("Creating new selected tag for tag ID {} with pose error: {}...", det->id, pose_err);
-					selectedTag = new AprilTagWithPose();
-				} else
-					LOG_TRACE("Found better pose for tag ID {} with lower error: {}, updating selected tag...", det->id, pose_err);
-				selectedTag->detection = det;
-				selectedTag->pose = pose_result;
-				selectedTag->pose_err = pose_err;
+		if (!found || pose_err < bestTag.pose_err) {
+			if (found) {
+				// free matrices from the previously best (now discarded) pose
+				matd_destroy(bestTag.pose.R);
+				matd_destroy(bestTag.pose.t);
 			}
-
-			//std::cout << "[AprilTagDetection] Pose Error for Tag ID " << det->id << ": " << pose_err << std::endl;
+			LOG_TRACE("New best pose for tag ID {} with error: {}...", det->id, pose_err);
+			bestTag.detection = det;
+			bestTag.pose = pose_result;
+			bestTag.pose_err = pose_err;
+			found = true;
+		} else {
+			// discard this pose — free its matrices to avoid leak
+			matd_destroy(pose_result.R);
+			matd_destroy(pose_result.t);
 		}
 	}
 
-	if (!selectedTag || selectedTag->pose_err > 0.0001) {
-		LOG_TRACE("No valid detection result found for required tag ID: {}, either no detection or pose error too high ({}), returning default pose.", required_tag_id, selectedTag ? selectedTag->pose_err : 0);
-		return Pose{ 0,0,0,0,0,0 };
+	if (!found || bestTag.pose_err > 0.0001) {
+		LOG_TRACE("No valid detection result found for required tag ID: {}, either no detection or pose error too high ({}), returning default pose.", required_tag_id, found ? bestTag.pose_err : 0.0);
+		if (found) {
+			matd_destroy(bestTag.pose.R);
+			matd_destroy(bestTag.pose.t);
+		}
+		return Pose{ 0,0,0,0,0,0,-1 };
 	}
 
-	LOG_TRACE("Extracting pose for selected tag ID: {}, pose error: {}...", selectedTag->detection->id, selectedTag->pose_err);
+	LOG_TRACE("Extracting pose for selected tag ID: {}, pose error: {}...", bestTag.detection->id, bestTag.pose_err);
 
 	// Extrahiere Translation
-	double x = selectedTag->pose.t->data[0]; // X-Translation
-	double y = selectedTag->pose.t->data[1]; // Y-Translation
-	double z = selectedTag->pose.t->data[2]; // Z-Translation
+	double x = bestTag.pose.t->data[0]; // X-Translation
+	double y = bestTag.pose.t->data[1]; // Y-Translation
+	double z = bestTag.pose.t->data[2]; // Z-Translation
 
 	// Extrahiere Rotation Matrix (pose_R) und konvertiere in Euler-Winkel
 	double Rmat[3][3];
 	for (int r = 0; r < 3; r++)
 		for (int c = 0; c < 3; c++)
-			Rmat[r][c] = selectedTag->pose.R->data[r * 3 + c];
+			Rmat[r][c] = bestTag.pose.R->data[r * 3 + c];
 
 	double roll = atan2(Rmat[2][1], Rmat[2][2]);
 	double pitch = atan2(-Rmat[2][0], sqrt(Rmat[2][1] * Rmat[2][1] + Rmat[2][2] * Rmat[2][2]));
 	double yaw = atan2(Rmat[1][0], Rmat[0][0]);
 
-	LOG_TRACE("Returning pose for tag ID {}.", selectedTag->detection->id);
+	LOG_TRACE("Returning pose for tag ID {}.", bestTag.detection->id);
 
-	// gebe die berechnete Pose zurück
-	return Pose{ x,y,z, roll, pitch, yaw, required_tag_id, selectedTag->pose_err };
+	Pose result{ x, y, z, roll, pitch, yaw, required_tag_id, bestTag.pose_err };
+
+	matd_destroy(bestTag.pose.R);
+	matd_destroy(bestTag.pose.t);
+
+	return result;
 }
 
 void AprilTagDetection::saveImageToFile(const cv::Mat& image, int frameId, const std::string& imageType) {
