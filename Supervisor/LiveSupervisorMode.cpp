@@ -111,6 +111,11 @@ bool LiveSupervisorMode::stop() {
 		}
 	}
 
+	LOG_TRACE("Joining all workers for LiveSupervisorMode...");
+	for (auto& worker : workers_) {
+		worker->join();
+	}
+
 	LOG_TRACE("Stopping all ImageSources for LiveSupervisorMode...");
 	for (const auto& imgSource : imgSources_) {
 		if (!imgSource->stop()) {

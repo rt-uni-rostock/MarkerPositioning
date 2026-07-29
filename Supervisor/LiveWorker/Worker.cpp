@@ -11,15 +11,19 @@ Worker::Worker(IImageSource& source, DetectionPipeline& pipeline, uint8_t camera
 }
 
 Worker::~Worker() {
-	if (thread_.joinable()) {
-		thread_.join();
-	}
+	join();
 	LOG_TRACE("Worker destroyed.");
 }
 
 // check if worker is idle
 bool Worker::isIdle() const {
 	return state_.load() == WorkerState::Idle;
+}
+
+void Worker::join() {
+	if (thread_.joinable()) {
+		thread_.join();
+	}
 }
 
 // start worker thread for pipeline execution
@@ -35,6 +39,11 @@ void Worker::start(uint64_t cycleId,
 		return;
 	}
 
+	// reap previous finished thread before reassigning
+	if (thread_.joinable()) {
+		thread_.join();
+	}
+
 	// set state to running and store start time
 	state_ = WorkerState::Running;
 
@@ -43,7 +52,9 @@ void Worker::start(uint64_t cycleId,
 	LOG_TRACE("Starting thread for worker cycle {}...", cycleId);
 
 	// start thread for pipeline execution
-	thread_ = std::thread([=, this]() {
+	thread_ = std::thread([this, cycleId,
+		onSuccess = std::move(onSuccess),
+		onError = std::move(onError)]() mutable {
 		try {
 
 			// live image acquisition

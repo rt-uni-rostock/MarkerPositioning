@@ -20,6 +20,7 @@ public:
 	~Worker();
 
 	bool isIdle() const;
+	void join();
 
 	void start(uint64_t cycleId,
 		std::function<void(const PipelineResult&)> onSuccess,
