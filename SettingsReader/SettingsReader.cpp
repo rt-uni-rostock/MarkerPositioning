@@ -5,6 +5,7 @@
 
 #include "Logger.h"
 #include "SourceModeEnum.h"
+#include "SupervisorModeEnum.h"
 #include "StreamTypeEnum.h"
 #include "TagTypeEnum.h"
 #include "GeneralSettings.h"
@@ -98,6 +99,7 @@ void from_json(const json& j, CameraSettings& c)
 void to_json(json& j, const GeneralSettings& s)
 {
 	j = json{
+		{"supervisorMode", static_cast<int>(s.supervisorMode)},
 		{"sourceMode", static_cast<int>(s.sourceMode)},
 		{"tagType", static_cast<int>(s.tagType)},
 		{"tagSize", s.tagSize},
@@ -117,6 +119,7 @@ void from_json(const json& j, GeneralSettings& s)
 {
 	// Defaults are already initialized in struct
 
+	s.supervisorMode = static_cast<SupervisorMode>(j.value("supervisorMode", s.supervisorMode));
 	s.sourceMode = static_cast<SourceMode>(j.value("sourceMode", s.sourceMode));
 	s.tagType = static_cast<TagType>(j.value("tagType", s.tagType));
 	s.tagSize = j.value("tagSize", s.tagSize);
@@ -151,13 +154,12 @@ SettingsReader::SettingsReader(const std::string& filename)
 	}
 	catch (const std::exception& e) {
 		LOG_ERROR("Error loading settings: {}. Creating default settings file...", e.what());
-		std::cout << "Error loading settings: " << e.what() << ". Creating default settings file..." << std::endl;
 
-		//writeDefaultSettings(filename);
+		writeDefaultSettings(filename);
 
 		// Try again after creating defaults
-		//LOG_TRACE("Attempting to load settings from file again: {}", filename);
-		//settings_ = loadSettings(filename);
+		LOG_TRACE("Attempting to load settings from file again: {}", filename);
+		settings_ = loadSettings(filename);
 	}
 }
 

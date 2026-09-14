@@ -2,3 +2,18 @@ out/
 .vs
 build/
 ExternalDLL/
+
+# Python virtual environments
+tools/venv/
+*.pyc
+__pycache__/
+
+# Local/backup files
+Settings_backup.json
+*.backup
+*.local
+
+# IDE/Editor files
+.vscode/
+*.suo
+*.code-workspace

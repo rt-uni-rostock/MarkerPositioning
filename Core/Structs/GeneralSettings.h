@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
 #include "SourceModeEnum.h"
+#include "SupervisorModeEnum.h"
 #include "TagTypeEnum.h"
 #include "CameraSettings.h"
 
@@ -17,6 +19,7 @@ struct ImageLoggingOptions {
 
 // settings structure for file
 struct GeneralSettings {
+	SupervisorMode supervisorMode = SupervisorMode::LiveDetection;
 	SourceMode sourceMode = SourceMode::Live; 	// Modus der Bildquelle (0=Live, 1=Recorded)
 	TagType tagType = TagType::AprilTag;		// Art des Fiducial Markers (0=AprilTag, 1=ArUco)
 	// Tag Family?

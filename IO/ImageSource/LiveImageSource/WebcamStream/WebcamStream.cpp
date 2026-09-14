@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "ImageSource/ImageFrame.h"
 #include "ImageSource/ImageSourceConfig.h"
+#include <array>
 
 WebcamStream::WebcamStream(const ImageSourceConfig& config) : IVideoStream(config)
 {
@@ -24,7 +25,34 @@ WebcamStream::~WebcamStream()
 bool WebcamStream::open()
 {
 	LOG_TRACE("Opening webcam stream...");
-	cap.open(0); // open default camera
+
+	const int configuredIndex = static_cast<int>(config_.cameraSettings->id);
+	const std::array<int, 2> indices{ configuredIndex, 0 };
+	const std::array<int, 3> backends{ cv::CAP_DSHOW, cv::CAP_MSMF, cv::CAP_ANY };
+
+	bool opened = false;
+	int openedIndex = -1;
+	int openedBackend = cv::CAP_ANY;
+
+	for (int backend : backends) {
+		for (int index : indices) {
+			if (opened) {
+				break;
+			}
+
+			if (index < 0) {
+				continue;
+			}
+
+			LOG_INFO("Trying webcam open with index {} and backend {}...", index, backend);
+			if (cap.open(index, backend)) {
+				opened = true;
+				openedIndex = index;
+				openedBackend = backend;
+			}
+		}
+	}
+
 	if (!cap.isOpened())
 	{
 		LOG_ERROR("Could not open webcam stream");
@@ -32,9 +60,11 @@ bool WebcamStream::open()
 	}
 	else
 	{
-		// camera scaled down to 640x480 to reduce CPU load, here explicit setting to 1920x1080
+		// Keep UDP chunk count manageable for real-time passthrough.
 		cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
 		cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+		cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
+		LOG_INFO("Webcam stream opened successfully with index {} and backend {}.", openedIndex, openedBackend);
 		LOG_TRACE("Webcam stream opened successfully");
 		return true;
 	}
@@ -78,4 +108,3 @@ ImageFrame WebcamStream::getFrame()
 
 	return latestData;
 }
-

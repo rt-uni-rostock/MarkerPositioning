@@ -195,6 +195,7 @@ target_link_libraries(ImageSource
 # =============================================================
 
 add_library(Sink
+    IO/Sink/ImageUdpPublisher.cpp
     IO/Sink/Sink.cpp
     IO/Sink/ResultLogger.cpp
     IO/Sink/UdpPublisher.cpp
@@ -208,6 +209,7 @@ target_link_libraries(Sink PUBLIC
     sqlite3
     Helper
     DetectionPipeline
+    ImageSource
 )
 
 # =============================================================
@@ -216,7 +218,9 @@ target_link_libraries(Sink PUBLIC
 
 add_library(Supervisor
     Supervisor/LiveSupervisorMode.cpp
+    Supervisor/LiveImagePassthroughSupervisorMode.cpp
     Supervisor/StaticSupervisorMode.cpp
+    Supervisor/SupervisorFactory.cpp
     Supervisor/LiveWorker/Worker.cpp
 )
 
