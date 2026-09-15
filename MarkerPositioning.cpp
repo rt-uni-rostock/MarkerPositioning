@@ -90,16 +90,7 @@ int main()
 
             LOG_INFO("Shutdown signal received, stopping Supervisor...");
 
-            try {
-                supervisor->stop();
-                LOG_INFO("Supervisor stopped successfully.");
-            }
-            catch (const std::exception& e) {
-                LOG_ERROR("Exception during supervisor shutdown: {}. Continuing with cleanup...", e.what());
-            }
-            catch (...) {
-                LOG_ERROR("Unknown exception during supervisor shutdown. Continuing with cleanup...");
-            }
+            supervisor->stop();
         }
         else {
         	LOG_CRITICAL("Failed to start Supervisor, shutting down application.");
