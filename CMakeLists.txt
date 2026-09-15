@@ -51,6 +51,11 @@ if(WIN32)
     set(APRILTAG_LIB
         "C:/Users/marti/Code/FiducialMarker/cpp_tests/AprilTagModule/apriltaglib/apriltag/build/Release/apriltag.lib"
     )
+    
+    # Für DLL-Copy später
+    set(APRILTAG_DLL
+        "C:/Users/marti/Code/FiducialMarker/cpp_tests/AprilTagModule/apriltaglib/apriltag/build/Release/apriltag.dll"
+    )
 else()
     find_path(APRILTAG_INCLUDE_DIR apriltag.h PATHS /usr/local/include/apriltag/)
     find_library(APRILTAG_LIB apriltag PATHS /usr/local/lib/)
@@ -268,3 +273,55 @@ add_executable(MarkerPositioning
 target_link_libraries(MarkerPositioning PRIVATE
     Supervisor
 )
+
+# =============================================================
+# Auto-Copy DLLs to Build Output (Windows)
+# =============================================================
+
+if (WIN32)
+    # OpenCV DLLs
+    set(OPENCV_BIN_DIR "C:/Code/opencv_build2/build/install/x64/vc17/bin")
+    
+    # Debug DLLs für Debug-Build
+    if (CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_CONFIGURATION_TYPES MATCHES Debug)
+        add_custom_command(TARGET MarkerPositioning POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${OPENCV_BIN_DIR}/opencv_world4120d.dll"
+                "$<CONFIG>/opencv_world4120d.dll"
+            COMMAND ${CMAKE_COMMAND} -E echo "✓ Copied opencv_world4120d.dll"
+            COMMENT "Copying OpenCV Debug DLLs..."
+        )
+    endif()
+    
+    # Release DLLs für Release-Build
+    add_custom_command(TARGET MarkerPositioning POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${OPENCV_BIN_DIR}/opencv_world4120.dll"
+            "$<CONFIG>/opencv_world4120.dll"
+        COMMAND ${CMAKE_COMMAND} -E echo "✓ Copied opencv_world4120.dll"
+        COMMENT "Copying OpenCV Release DLLs..."
+    )
+    
+    # Kopiere alle OpenCV DLLs
+    file(GLOB OPENCV_DLLS "${OPENCV_BIN_DIR}/*.dll")
+    foreach(DLL ${OPENCV_DLLS})
+        get_filename_component(DLL_NAME ${DLL} NAME)
+        add_custom_command(TARGET MarkerPositioning POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${DLL}"
+                "$<TARGET_FILE_DIR:MarkerPositioning>/${DLL_NAME}"
+            VERBATIM
+        )
+    endforeach()
+    
+    # AprilTag DLL
+    if (DEFINED APRILTAG_DLL AND EXISTS "${APRILTAG_DLL}")
+        add_custom_command(TARGET MarkerPositioning POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${APRILTAG_DLL}"
+                "$<TARGET_FILE_DIR:MarkerPositioning>/apriltag.dll"
+            COMMAND ${CMAKE_COMMAND} -E echo "✓ Copied apriltag.dll"
+            COMMENT "Copying AprilTag Runtime DLL..."
+        )
+    endif()
+endif()
