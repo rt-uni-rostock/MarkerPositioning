@@ -65,10 +65,31 @@ case $choice in
         ;;
     2)
         echo ""
-        read -p "LUCID_DEV_ROOT eingeben (z.B. /opt/ArenaSDK_Linux_x64): " lucid_root
+        step "Searching for Arena SDK installation..."
+        
+        # Versuche automatisch LUCID_DEV_ROOT zu finden
+        if [ -d "/opt/ArenaSDK_Linux_x64" ]; then
+            lucid_root="/opt/ArenaSDK_Linux_x64"
+            success "Found Arena SDK at: $lucid_root"
+        elif [ -d "/opt/ArenaSDK" ]; then
+            lucid_root="/opt/ArenaSDK"
+            success "Found Arena SDK at: $lucid_root"
+        else
+            # Suche nach libarena.so
+            echo "Searching for libarena.so..."
+            lucid_lib=$(find ~ -name 'libarena.so' 2>/dev/null | head -1)
+            
+            if [ -n "$lucid_lib" ]; then
+                lucid_root=$(dirname $(dirname "$lucid_lib"))
+                success "Found Arena SDK at: $lucid_root"
+            else
+                echo -e "${YELLOW}Could not auto-detect Arena SDK location${NC}"
+                read -p "Enter LUCID_DEV_ROOT manually (e.g. /opt/ArenaSDK_Linux_x64): " lucid_root
+            fi
+        fi
         
         if [ ! -d "$lucid_root" ]; then
-            echo -e "${RED}✗${NC} Verzeichnis nicht gefunden: $lucid_root"
+            echo -e "${RED}✗${NC} Directory not found: $lucid_root"
             exit 1
         fi
         
