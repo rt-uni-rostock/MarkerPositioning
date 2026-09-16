@@ -4,6 +4,22 @@ Alle Arbeiten zur **Linux-Portabilität des MarkerPositioning-Projekts** sind ab
 
 ---
 
+## 🆘 FEHLERBEHANDLUNG: Build-Fehler schnell beheben
+
+Falls du beim Build Fehler bekommst, führe aus:
+
+```bash
+cd ~/MarkerPositioning/MarkerPositioning
+chmod +x tools/*.sh
+./tools/fix-build-errors.sh
+```
+
+Dieses Script behebt automatisch:
+- ❌ `spdlog: does not contain a CMakeLists.txt` → Git Submodules init
+- ❌ `LUCID Arena SDK could not be found` → Mit/Ohne LUCID Auswahl
+
+---
+
 ## 🎁 Was Du jetzt hast
 
 ### 📁 Automatisierungs-Tools (unter `tools/`)

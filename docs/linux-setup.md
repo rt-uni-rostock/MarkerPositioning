@@ -1,5 +1,23 @@
 # Linux-Setup: Debian x86_64 und Raspberry Pi 5 (aarch64)
 
+## 🚨 SCHNELLE HILFE: Fehler beim `./build.sh --preset linux-debian`?
+
+Falls du einen der folgenden Fehler bekommst, scrolle zu **Kapitel 7 (Troubleshooting)** oder führe aus:
+
+```bash
+# Behebt automatisch die häufigsten Build-Fehler
+./tools/fix-build-errors.sh
+```
+
+**Häufigste Fehler:**
+1. `spdlog: does not contain a CMakeLists.txt file`
+   → Lösung: `git submodule update --init --recursive`
+
+2. `LUCID Arena SDK could not be found`
+   → Lösung: Entweder Arena SDK installieren ODER `./build.sh --preset linux-rpi5`
+
+---
+
 Dieses Dokument beschreibt, wie die Build-Abhängigkeiten von MarkerPositioning auf
 einem Debian-basierten Linux-System eingerichtet werden. Es deckt zwei
 Zielsysteme mit unterschiedlichem Funktionsumfang ab:

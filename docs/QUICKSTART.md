@@ -1,5 +1,27 @@
 # Quick Start: MarkerPositioning auf Debian 13 / Raspberry Pi 5
 
+## 🆘 Build-Fehler? Schnelle Hilfe:
+
+Falls du beim `./build.sh --preset linux-debian` Fehler bekommst:
+
+```bash
+# Automatische Fehlerbehebung:
+./tools/fix-build-errors.sh
+```
+
+**Oder manuell:**
+```bash
+# Fehler: "spdlog: does not contain a CMakeLists.txt"
+git submodule update --init --recursive
+
+# Fehler: "LUCID Arena SDK could not be found"
+# → Option 1: Arena SDK installieren & Umgebungsvariablen setzen
+# → Option 2: Ohne LUCID bauen:
+./build.sh --preset linux-rpi5
+```
+
+---
+
 ## ⚡ Ultra-Schnell (mit Automation)
 
 ```bash
