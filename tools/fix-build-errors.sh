@@ -25,18 +25,19 @@ echo "║  Fix: MarkerPositioning Build Errors on Debian 13         ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Auto-navigate to correct directory
-step "Locating project directory..."
+# Auto-navigate to correct directory (only if we're in parent)
+step "Verifying project directory..."
 
-if [ -d "MarkerPositioning" ] && [ ! -f "CMakeLists.txt" ]; then
+if [ -f "CMakeLists.txt" ]; then
+    # Wir sind schon im richtigen directory
+    success "Project found in: $(pwd)"
+elif [ -d "MarkerPositioning" ] && [ -f "MarkerPositioning/CMakeLists.txt" ]; then
     # Wir sind im parent directory, wechsle zum project directory
     cd MarkerPositioning
-    success "Navigated to: $(pwd)"
-elif [ -f "CMakeLists.txt" ]; then
-    # Wir sind schon im richtigen directory
-    success "Already in: $(pwd)"
+    success "Navigated to project directory: $(pwd)"
 else
-    echo -e "${RED}✗${NC} Could not find project directory!"
+    echo -e "${RED}✗${NC} Project directory not found!"
+    echo "Expected to find CMakeLists.txt in current or MarkerPositioning/ subdirectory"
     exit 1
 fi
 

@@ -9,7 +9,7 @@ Alle Arbeiten zur **Linux-Portabilität des MarkerPositioning-Projekts** sind ab
 Falls du beim Build Fehler bekommst, führe aus:
 
 ```bash
-cd ~/MarkerPositioning/MarkerPositioning
+cd ~/MarkerPositioning
 chmod +x tools/*.sh
 ./tools/fix-build-errors.sh
 ```
