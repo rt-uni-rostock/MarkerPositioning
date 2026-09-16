@@ -113,33 +113,115 @@ nötig, weil das Schreiben nach `/usr/local` Administratorrechte erfordert.
 
 ## 4. LUCID Arena SDK (nur für Debian-Zielsystem mit `ENABLE_LUCID=ON`)
 
-Auf dem Raspberry Pi 5 kann dieser Schritt übersprungen werden
-(`ENABLE_LUCID=OFF`, siehe Preset `linux-rpi5`).
+⚠️ **DIESER SCHRITT IST NUR NÖTIG, WENN DU LUCID GigE KAMERAS HAST!**
 
-1. Arena SDK für Linux x86_64 von LUCID Vision Labs herunterladen
-   (Registrierung bei https://thinklucid.com erforderlich).
-2. Installationsskript gemäß LUCID-Dokumentation ausführen (installiert i. d. R.
-   nach `/opt/ArenaSDK_Linux_x64` oder ähnlichem Pfad und trägt den
-   Bibliothekspfad in `/etc/ld.so.conf.d/Arena_SDK.conf` ein).
-3. Umgebungsvariablen setzen, bevor `cmake`/`build.sh` aufgerufen wird
-   (z. B. in `~/.bashrc` oder einem Setup-Skript):
+Wenn du **keine LUCID-Kameras** brauchst, kannst du diesen Schritt überspringen und stattdessen den einfacheren Build verwenden:
+```bash
+./build.sh --preset linux-rpi5    # ← Baut ohne LUCID-Unterstützung
+```
 
+### 4a. Was ist `LUCID_DEV_ROOT`?
+
+`LUCID_DEV_ROOT` ist der **Pfad zum Arena SDK** — das ist die Treibersoftware von LUCID Vision Labs für ihre GigE-Vision Kameras.
+
+Normalerweise nach der Installation: `/opt/ArenaSDK_Linux_x64`
+
+### 4b. Schritte zur Arena SDK Installation
+
+**Schritt 1: Arena SDK herunterladen**
+
+- Gehe zu: https://support.lucidvisionlabs.com/hc/en-us
+- Registriere dich auf https://thinklucid.com (kostenlos)
+- Lade **Arena SDK für Linux x86_64** herunter (z.B. `ArenaSDK_v1.x.x_Linux_x64.tar.gz`)
+
+**Schritt 2: Arena SDK installieren**
+
+```bash
+cd ~/Downloads
+tar xzf ArenaSDK_v*.tar.gz          # Entpacken
+cd ArenaSDK_Linux_x64               # In das Verzeichnis wechseln
+./install.sh                        # Install-Skript ausführen
+# oder mit sudo wenn nötig: sudo ./install.sh
+```
+
+→ Wird normalerweise nach `/opt/ArenaSDK_Linux_x64` installiert
+
+**Schritt 3: Überprüf ob Installation erfolgreich war**
+
+```bash
+ls -la /opt/ArenaSDK_Linux_x64/lib64/libarena.so
+# Sollte eine Datei ausgeben, nicht "No such file or directory"
+```
+
+Falls die Datei nicht existiert:
+- Vielleicht SDK woanders installiert? Dann: `find ~ -name "libarena.so" 2>/dev/null`
+- Oder Installationsskript fehlgeschlagen? Logs überprüfen oder SDK erneut installieren
+
+**Schritt 4: Umgebungsvariablen setzen**
+
+Bevor du `build.sh` aufrufst, setze diese Variablen:
+
+```bash
+export LUCID_DEV_ROOT=/opt/ArenaSDK_Linux_x64
+export LUCID_GENICAM_PATH=/opt/ArenaSDK_Linux_x64/GenICam
+```
+
+Verifizieren:
+```bash
+echo $LUCID_DEV_ROOT
+# Sollte ausgeben: /opt/ArenaSDK_Linux_x64
+
+ls $LUCID_DEV_ROOT/lib64/
+# Sollte zeigen: libarena.so, libGCBase_*.so, etc.
+```
+
+**Optional: Permanent machen** (in `~/.bashrc` oder `~/.zshrc`):
+
+```bash
+echo 'export LUCID_DEV_ROOT=/opt/ArenaSDK_Linux_x64' >> ~/.bashrc
+echo 'export LUCID_GENICAM_PATH=/opt/ArenaSDK_Linux_x64/GenICam' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Schritt 5: ldconfig aktualisieren**
+
+```bash
+sudo ldconfig
+```
+
+→ Damit die Arena-SDK-Bibliotheken zur Laufzeit gefunden werden
+
+### 4c. Troubleshooting: "LUCID Arena SDK could not be found" beim Build
+
+Falls CMake-Fehler:
+```
+CMake Error at CMakeLists.txt:259 (message):
+  ENABLE_LUCID=ON but the LUCID Arena SDK could not be found.
+```
+
+**Lösungen:**
+
+1. **Hast du Umgebungsvariablen gesetzt?**
    ```bash
-   export LUCID_DEV_ROOT=/opt/ArenaSDK_Linux_x64
-   export LUCID_GENICAM_PATH=/opt/ArenaSDK_Linux_x64/GenICam
+   echo $LUCID_DEV_ROOT
+   echo $LUCID_GENICAM_PATH
+   # Sollten beide Werte zeigen, nicht leer sein
    ```
 
-   Die genauen Pfade hängen von der tatsächlichen SDK-Installation ab —
-   `LUCID_DEV_ROOT` muss auf das Wurzelverzeichnis der Arena SDK zeigen
-   (enthält u. a. `lib64/libarena.so`), `LUCID_GENICAM_PATH` auf das
-   `GenICam`-Unterverzeichnis darin (enthält
-   `library/lib/Linux64_x64/libGCBase_*.so`).
-4. `sudo ldconfig` erneut ausführen, damit die Arena-SDK-Bibliotheken zur
-   Laufzeit gefunden werden.
+2. **Stimmen die Pfade?**
+   ```bash
+   ls $LUCID_DEV_ROOT/lib64/libarena.so
+   ls $LUCID_GENICAM_PATH/library/
+   # Sollten beide existieren
+   ```
 
-`CMakeLists.txt` bricht mit einer klaren Fehlermeldung ab
-(`FATAL_ERROR`), falls `ENABLE_LUCID=ON` gesetzt ist, aber Arena-SDK-
-Bibliotheken nicht gefunden werden.
+3. **Falls Arena SDK nicht installiert:**
+   → Entweder: SDK installieren (siehe oben)
+   → Oder: Ohne LUCID bauen: `./build.sh --preset linux-rpi5`
+
+`CMakeLists.txt` bricht absichtlich mit klarer Fehlermeldung ab
+(`FATAL_ERROR`), falls `ENABLE_LUCID=ON` aber Arena-SDK nicht gefunden wird —
+das verhindert mysteriöse Link-Fehler später.
 
 ## 5. Projekt bauen
 
