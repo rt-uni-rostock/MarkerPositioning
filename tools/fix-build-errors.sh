@@ -25,21 +25,29 @@ echo "║  Fix: MarkerPositioning Build Errors on Debian 13         ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
+# Auto-navigate to correct directory
+step "Locating project directory..."
+
+if [ -d "MarkerPositioning" ] && [ ! -f "CMakeLists.txt" ]; then
+    # Wir sind im parent directory, wechsle zum project directory
+    cd MarkerPositioning
+    success "Navigated to: $(pwd)"
+elif [ -f "CMakeLists.txt" ]; then
+    # Wir sind schon im richtigen directory
+    success "Already in: $(pwd)"
+else
+    echo -e "${RED}✗${NC} Could not find project directory!"
+    exit 1
+fi
+
+echo ""
+
 # SCHRITT 1: Git Submodules initialisieren
 step "Initializing Git Submodules..."
 
 if [ ! -f "external/spdlog/CMakeLists.txt" ]; then
-    if [ -d ".git" ]; then
-        # Befinde mich im Repository
-        git submodule update --init --recursive
-        success "Git Submodules initialized"
-    else
-        # Befinde mich vielleicht im übergeordneten Verzeichnis
-        cd MarkerPositioning
-        git submodule update --init --recursive
-        cd ..
-        success "Git Submodules initialized (from parent dir)"
-    fi
+    git submodule update --init --recursive
+    success "Git Submodules initialized"
 else
     success "Git Submodules already initialized"
 fi
