@@ -60,6 +60,12 @@ int main()
 
 	LOG_INFO("Application starting...");
 
+#ifdef MP_ENABLE_LUCID
+	LOG_INFO("Build features: LUCID GigE camera support = ENABLED");
+#else
+	LOG_INFO("Build features: LUCID GigE camera support = DISABLED");
+#endif
+
     try
     {
         LOG_INFO("Loading settings from JSON file...");

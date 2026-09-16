@@ -5,7 +5,9 @@
 
 #include "ImageSource/LiveImageSource/LiveImageSource.h"
 #include "ImageSource/StaticImageSource/StaticImageSource.h"
+#ifdef MP_ENABLE_LUCID
 #include "ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.h"
+#endif
 #include "ImageSource/LiveImageSource/RTPStream/RTPStream.h"
 #include "ImageSource/LiveImageSource/RTSPStream/RTSPStream.h"
 #include "ImageSource/LiveImageSource/WebcamStream/WebcamStream.h"
@@ -43,8 +45,13 @@ std::unique_ptr<IImageSource> ImageSourceFactory::create()
 			LOG_TRACE("RTP stream created successfully.");
 			break;
 		case StreamType::LUCID:
+#ifdef MP_ENABLE_LUCID
 			stream = std::make_unique<LUCIDStream>(config_);
 			LOG_TRACE("LUCID stream created successfully.");
+#else
+			LOG_ERROR("LUCID GigE camera support is not compiled into this build (ENABLE_LUCID=OFF).");
+			throw std::runtime_error("LUCID GigE camera support is not available in this build (ENABLE_LUCID=OFF)");
+#endif
 			break;
 		case StreamType::WEBCAM:
 			stream = std::make_unique<WebcamStream>(config_);

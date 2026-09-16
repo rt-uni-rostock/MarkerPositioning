@@ -28,7 +28,11 @@ bool WebcamStream::open()
 
 	const int configuredIndex = static_cast<int>(config_.cameraSettings->id);
 	const std::array<int, 2> indices{ configuredIndex, 0 };
+#ifdef _WIN32
 	const std::array<int, 3> backends{ cv::CAP_DSHOW, cv::CAP_MSMF, cv::CAP_ANY };
+#else
+	const std::array<int, 2> backends{ cv::CAP_V4L2, cv::CAP_ANY };
+#endif
 
 	bool opened = false;
 	int openedIndex = -1;

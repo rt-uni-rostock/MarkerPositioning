@@ -23,6 +23,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Windows: binde lokale Bibliotheken ein
 
 # =============================================================
+# Feature Selection
+# =============================================================
+# ENABLE_LUCID steuert, ob Unterstuetzung fuer LUCID-GigE-Kameras (Arena SDK)
+# einkompiliert wird. Manche Zielsysteme (z. B. Raspberry Pi) benoetigen keine
+# LUCID-Kamera und sollen daher auch keine Arena-SDK-Installation benoetigen.
+# Auswahl je Zielsystem z. B. ueber CMakePresets.json ("linux-debian" -> ON,
+# "linux-rpi5" -> OFF) oder manuell per -DENABLE_LUCID=OFF.
+option(ENABLE_LUCID "Enable LUCID GigE camera support (requires LUCID Arena SDK)" ON)
+
+if(ENABLE_LUCID)
+    message(STATUS "LUCID GigE camera support: ENABLED (ENABLE_LUCID=ON, Arena SDK required)")
+else()
+    message(STATUS "LUCID GigE camera support: DISABLED (ENABLE_LUCID=OFF, no Arena SDK required)")
+endif()
+
+# =============================================================
 # External Dependencies
 # =============================================================
 
@@ -35,6 +51,16 @@ add_subdirectory(external/sqlite)
 
 if (WIN32)
 	set(OpenCV_DIR "C:/Code/opencv_build2/build/install/x64/vc17/lib/")
+else()
+	# Unter Linux wird OpenCV i. d. R. selbst aus dem Quellcode gebaut (Debian-
+	# Repository-Pakete sind meist zu alt bzw. ohne GStreamer/V4L2-Unterstuetzung).
+	# OpenCV_DIR kann beim Konfigurieren ueberschrieben werden, z. B.:
+	#   cmake -DOpenCV_DIR=/usr/local/lib/cmake/opencv4 ..
+	# Ist OpenCV_DIR nicht gesetzt, verwendet find_package() die Standard-Suchpfade
+	# (u. a. /usr/local/lib/cmake/opencv4, sofern per "make install" installiert).
+	if (DEFINED OpenCV_DIR)
+		message(STATUS "Using OpenCV_DIR override: ${OpenCV_DIR}")
+	endif()
 endif()
 
 find_package(OpenCV REQUIRED)
@@ -71,16 +97,6 @@ set_target_properties(AprilTag PROPERTIES
     IMPORTED_LOCATION ${APRILTAG_LIB}
     INTERFACE_INCLUDE_DIRECTORIES ${APRILTAG_INCLUDE_DIR}
 )
-
-# =============================================================
-# Configuration file (OLD)
-# =============================================================
-
-if(EXISTS "${CMAKE_SOURCE_DIR}/config.cmake")
-	include(${CMAKE_SOURCE_DIR}/config.cmake)
-else()
-	message(STATUS "config.cmake not found - using defaults")
-endif()
 
 
 # =============================================================
@@ -160,28 +176,15 @@ target_link_libraries(DetectionPipeline
 add_library(ImageSource
     IO/ImageSource/ImageSourceFactory.cpp
     IO/ImageSource/LiveImageSource/LiveImageSource.cpp
-    IO/ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.cpp
     IO/ImageSource/LiveImageSource/RTPStream/RTPStream.cpp
     IO/ImageSource/LiveImageSource/RTSPStream/RTSPStream.cpp
     IO/ImageSource/LiveImageSource/WebcamStream/WebcamStream.cpp
     IO/ImageSource/StaticImageSource/StaticImageSource.cpp
 )
 
-set(LUCID_ROOT $ENV{LUCID_DEV_ROOT})
-set(GENICAM_ROOT $ENV{LUCID_GENICAM_PATH})
-
 target_include_directories(ImageSource 
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/IO
-        ${LUCID_ROOT}/include/Arena
-        ${LUCID_ROOT}/include/GenTL
-        ${LUCID_ROOT}/include/Save
-        ${GENICAM_ROOT}/library/CPP/include
-)
-
-target_link_directories(ImageSource PUBLIC
-	${LUCID_ROOT}/lib64/Arena
-	${GENICAM_ROOT}/library/CPP/lib/Win64_x64
 )
 
 target_link_libraries(ImageSource 
@@ -189,11 +192,87 @@ target_link_libraries(ImageSource
         ${OpenCV_LIBS}
         Helper
         CoreTypes
-
-    PRIVATE
-        Arenad_v140
-        Saved_v140
 )
+
+# -------------------------------------------------------------
+# LUCID Arena SDK (GigE camera support), only if ENABLE_LUCID=ON
+# -------------------------------------------------------------
+if(ENABLE_LUCID)
+
+    target_sources(ImageSource PRIVATE
+        IO/ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.cpp
+    )
+
+    # Compile definition used by ImageSourceFactory.cpp to conditionally
+    # include/instantiate LUCIDStream.
+    target_compile_definitions(ImageSource PUBLIC MP_ENABLE_LUCID)
+
+    set(LUCID_ROOT $ENV{LUCID_DEV_ROOT})
+    set(GENICAM_ROOT $ENV{LUCID_GENICAM_PATH})
+
+    target_include_directories(ImageSource 
+        PUBLIC
+            ${LUCID_ROOT}/include/Arena
+            ${LUCID_ROOT}/include/GenTL
+            ${LUCID_ROOT}/include/Save
+            ${GENICAM_ROOT}/library/CPP/include
+    )
+
+    if(WIN32)
+        # Windows Arena SDK: pre-built C++ GenICam bindings under
+        # GenICam/library/CPP/lib/Win64_x64, MSVC-versioned lib names.
+        target_link_directories(ImageSource PUBLIC
+            ${LUCID_ROOT}/lib64/Arena
+            ${GENICAM_ROOT}/library/CPP/lib/Win64_x64
+        )
+
+        target_link_libraries(ImageSource PRIVATE
+            Arenad_v140
+            Saved_v140
+        )
+    else()
+        # Linux Arena SDK (Debian x86_64 or ARM64, e.g. Raspberry Pi):
+        # library layout/names differ from Windows, see LUCID's own
+        # "Arena_SDK.conf"-based FindARENA.cmake reference implementation:
+        #   <root>/lib64/libarena.so, libsave.so, libgentl.so
+        #   <root>/GenICam/library/lib/Linux64_x64|Linux64_ARM/libGCBase_*.so, libGenApi_*.so
+        if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+            set(ARENA_GENICAM_LIB_DIR "${GENICAM_ROOT}/library/lib/Linux64_ARM")
+            set(ARENA_LIB_DIR "${LUCID_ROOT}/lib")
+        else()
+            set(ARENA_GENICAM_LIB_DIR "${GENICAM_ROOT}/library/lib/Linux64_x64")
+            set(ARENA_LIB_DIR "${LUCID_ROOT}/lib64")
+        endif()
+
+        find_library(ARENA_LIB arena PATHS ${ARENA_LIB_DIR})
+        find_library(ARENA_SAVE_LIB save PATHS ${ARENA_LIB_DIR})
+        find_library(ARENA_GENTL_LIB gentl PATHS ${ARENA_LIB_DIR})
+
+        # GCBase/GenApi shared library file names carry a compiler/version
+        # suffix (e.g. libGCBase_gcc54_v3_3_LUCID.so) that varies by SDK
+        # release, hence they are located via glob instead of a fixed name.
+        file(GLOB ARENA_GENICAM_GCBASE_LIB "${ARENA_GENICAM_LIB_DIR}/libGCBase_*.so")
+        file(GLOB ARENA_GENICAM_GENAPI_LIB "${ARENA_GENICAM_LIB_DIR}/libGenApi_*.so")
+
+        if(NOT ARENA_LIB OR NOT ARENA_SAVE_LIB OR NOT ARENA_GENTL_LIB
+                OR NOT ARENA_GENICAM_GCBASE_LIB OR NOT ARENA_GENICAM_GENAPI_LIB)
+            message(FATAL_ERROR
+                "ENABLE_LUCID=ON but the LUCID Arena SDK could not be found. "
+                "Make sure LUCID_DEV_ROOT and LUCID_GENICAM_PATH are set (see "
+                "docs/linux-setup.md) and the Arena SDK is installed, or "
+                "configure with -DENABLE_LUCID=OFF to build without LUCID "
+                "GigE camera support.")
+        endif()
+
+        target_link_libraries(ImageSource PRIVATE
+            ${ARENA_LIB}
+            ${ARENA_SAVE_LIB}
+            ${ARENA_GENTL_LIB}
+            ${ARENA_GENICAM_GCBASE_LIB}
+            ${ARENA_GENICAM_GENAPI_LIB}
+        )
+    endif()
+endif()
 
 # =============================================================
 # Sink

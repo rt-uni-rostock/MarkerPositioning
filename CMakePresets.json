@@ -74,6 +74,24 @@
             }
         },
         {
+            "name": "linux-debian",
+            "displayName": "Linux (Debian, with LUCID GigE support)",
+            "inherits": "linux-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "ENABLE_LUCID": "ON"
+            }
+        },
+        {
+            "name": "linux-rpi5",
+            "displayName": "Linux (Raspberry Pi 5, without LUCID GigE support)",
+            "inherits": "linux-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "ENABLE_LUCID": "OFF"
+            }
+        },
+        {
             "name": "macos-debug",
             "displayName": "macOS Debug",
             "generator": "Ninja",

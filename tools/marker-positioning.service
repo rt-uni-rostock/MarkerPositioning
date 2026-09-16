@@ -1,0 +1,19 @@
+[Unit]
+Description=MarkerPositioning fiducial marker detection service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Adjust these paths to match the actual build preset/output directory used
+# on this system, e.g. out/build/linux-rpi5 or out/build/linux-debian.
+WorkingDirectory=/opt/MarkerPositioning
+ExecStart=/opt/MarkerPositioning/MarkerPositioning
+Restart=on-failure
+RestartSec=5
+# Forward application logs to the systemd journal ("journalctl -u marker-positioning").
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
