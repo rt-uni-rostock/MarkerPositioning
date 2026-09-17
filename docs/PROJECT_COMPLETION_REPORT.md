@@ -17,9 +17,9 @@
 - [x] MarkerPositioning.cpp - Startup Feature-Status Logging
 
 ### ✅ Dokumentation (6 Dateien)
-- [x] START_HERE.md - Erste Orientierung für Benutzer
-- [x] INSTALLATION_COMPLETE.md - Kompletter Überblick & Zusammenfassung
-- [x] LINUX_IMPLEMENTATION_CHECKLIST.md - Technische Implementierungs-Details
+- [x] docs/START_HERE.md - Erste Orientierung für Benutzer
+- [x] docs/INSTALLATION_COMPLETE.md - Kompletter Überblick & Zusammenfassung
+- [x] docs/LINUX_IMPLEMENTATION_CHECKLIST.md - Technische Implementierungs-Details
 - [x] docs/QUICKSTART.md - TL;DR für schnelle Referenz
 - [x] docs/linux-setup.md - 8-Kapitel vollständige Installationsanleitung
 - [x] tools/README.md - Dokumentation aller Automation-Scripts
@@ -76,9 +76,9 @@ option(ENABLE_LUCID "Enable LUCID GigE camera support" ON)
 
 **Für Anfänger:**
 ```
-START_HERE.md (2 min)
+docs/START_HERE.md (2 min)
     ↓
-INSTALLATION_COMPLETE.md (10 min)
+docs/INSTALLATION_COMPLETE.md (10 min)
     ↓
 tools/diagnose-linux.sh (2 min Check)
     ↓
@@ -162,7 +162,7 @@ tools/README.md (Script-Dokumentation)
 ## 🚀 Nächste Schritte für Benutzer
 
 ### SOFORT
-1. Datei öffnen: `START_HERE.md`
+1. Datei öffnen: `docs/START_HERE.md`
 2. Befehle ausführen:
    ```bash
    cd ~/MarkerPositioning/MarkerPositioning
@@ -238,7 +238,7 @@ Das MarkerPositioning-Projekt ist nun **100% produktionsreif für Linux**.
 - ✅ Produktionsreif
 
 ### Für nächste Schritte:
-- Benutzer wird zu `START_HERE.md` weitergeleitet
+- Benutzer wird zu `docs/START_HERE.md` weitergeleitet
 - Installation dauert ~2 Stunden (Debian) oder ~5 Stunden (RPi5)
 - Full Support durch Dokumentation + Automation-Tools vorhanden
 

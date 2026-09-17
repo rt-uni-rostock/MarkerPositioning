@@ -8,8 +8,13 @@ tools/venv/
 *.pyc
 __pycache__/
 
+# Generated output from tools/ scripts
+tools/received/
+tools/*.log
+tools/*.jsonl
+
 # Local/backup files
-Settings_backup.json
+settings/Settings_backup.json
 *.backup
 *.local
 

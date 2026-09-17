@@ -452,7 +452,7 @@ Bestimmt, ob die Kamera aktiv genutzt wird.
 
 ### Problem: "Settings.json not found"
 - Stelle sicher, dass `Settings.json` im selben Verzeichnis wie die EXE liegt.
-- Kopiere `Settings.json` in den Build-Output-Ordner.
+- Die Master-Kopie liegt im Repo unter `settings/Settings.json` und wird von `build.sh` in den Build-Output-Ordner kopiert.
 
 ### Problem: UDP-Pakete kommen nicht an
 - Prüfe `udpIp` und `udpPort`.

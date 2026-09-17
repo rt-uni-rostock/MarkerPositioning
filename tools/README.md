@@ -120,6 +120,40 @@ ExecStart=/home/iat/MarkerPositioning/MarkerPositioning/out/build/linux-debian/M
 
 ---
 
+### 5. `udp_image_receiver.py` - Referenz-Bildempfaenger
+
+**Zweck:** Empfaengt die von `IO/Sink/ImageUdpPublisher` gesendeten, in Chunks aufgeteilten Bilder per UDP, setzt sie wieder zusammen und zeigt sie an bzw. speichert sie ab.
+
+**Python-Setup (fuer dieses und das folgende Script):**
+```bash
+cd tools
+python -m venv venv
+# Windows: venv\Scripts\activate    |    Linux/macOS: source venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Verwendung:**
+```bash
+python tools/udp_image_receiver.py                          # nur Anzeige
+python tools/udp_image_receiver.py --save-dir tools/received # Speichern, keine Anzeige
+python tools/udp_image_receiver.py --save-dir tools/received --display  # Speichern UND Anzeige
+```
+
+Siehe auch `udp_image_receiver_matlab.m` fuer eine MATLAB-Variante.
+
+---
+
+### 6. `udp_message_receiver.py` - Referenz-Nachrichtenempfaenger
+
+**Zweck:** Gegenstelle zu `IO/Sink/UdpPublisher`. Empfaengt die MarkerMessage-Pakete (Position/Rotation je Marker), protokolliert sie lesbar (Konsole + Logdatei) und speichert alle Rohdaten zusaetzlich als JSON-Lines-Datei.
+
+**Verwendung:**
+```bash
+python tools/udp_message_receiver.py [--host 0.0.0.0] [--port 5001] [--logfile udp_receiver.log] [--jsonfile udp_messages.jsonl]
+```
+
+---
+
 ## Workflow-Beispiele
 
 ### Neue Installation
@@ -216,7 +250,7 @@ export LUCID_GENICAM_PATH=/opt/ArenaSDK_Linux_x64/GenICam
 
 - **Quick Start:** `docs/QUICKSTART.md`
 - **Detaillierte Setup:** `docs/linux-setup.md`
-- **Implementierungs-Details:** `LINUX_IMPLEMENTATION_CHECKLIST.md`
+- **Implementierungs-Details:** `docs/LINUX_IMPLEMENTATION_CHECKLIST.md`
 - **Projekt-Readme:** `README.md`
 - **Konfiguration:** `SETTINGS.md`
 

@@ -44,14 +44,14 @@ tools/diagnose-linux.sh             # Überprüfe Abhängigkeiten
 For detailed instructions, see:
 - **Quick Start:** `docs/QUICKSTART.md`
 - **Full Setup:** `docs/linux-setup.md`
-- **Implementation Details:** `LINUX_IMPLEMENTATION_CHECKLIST.md`
+- **Implementation Details:** `docs/LINUX_IMPLEMENTATION_CHECKLIST.md`
 
 # Usage
 
 For configuration of this library, there is a build-time option and a runtime configuration file.
 
 1. `ENABLE_LUCID` (CMake option, default `ON`): controls whether support for LUCID Vision GigE cameras (Arena SDK) is compiled in. Some target systems (e.g. Raspberry Pi) don't need a LUCID camera and should not require an Arena SDK installation; configure with `-DENABLE_LUCID=OFF` (or use a matching CMake preset, see `CMakePresets.json`) to build without it. All other stream types (RTSP, RTP, USB webcam) and the marker type (AprilTags, ArUco) are always compiled in and selected at runtime via `Settings.json`.
-1. Settings.json: Here you can configure the remaining parameters, such as camera intrinsics, marker size, and other relevant settings. Refer to the provided Settings_template.json for guidance. Remember, that json files do not support comments!
+1. `settings/Settings.json`: Here you can configure the remaining parameters, such as camera intrinsics, marker size, and other relevant settings. Refer to the provided `settings/Settings_template.json` for guidance. Remember, that json files do not support comments! This master copy is picked up by `build.sh` and copied next to the built executable as `Settings.json`, which is where the application reads it from at runtime.
 
 See `docs/linux-setup.md` for detailed instructions on setting up the required dependencies (OpenCV, AprilTag, and optionally the LUCID Arena SDK) on Debian Linux and Raspberry Pi 5.
 
