@@ -202,7 +202,7 @@ else
     check_fail "build.sh nicht gefunden"
 fi
 
-if [ -f "Settings.json" ]; then
+if [ -f "settings/Settings.json" ]; then
     check_ok "Settings.json vorhanden"
 else
     check_warn "Settings.json nicht vorhanden (wird beim Build kopiert)"

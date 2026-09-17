@@ -59,8 +59,8 @@ if [ -n "$PRESET" ]; then
     cmake --build --preset "$PRESET" -j"$(nproc)"
 
     BIN_DIR="out/build/$PRESET"
-    if [ ! -f "$BIN_DIR/Settings.json" ] && [ -f "Settings.json" ]; then
-        cp Settings.json "$BIN_DIR/Settings.json"
+    if [ ! -f "$BIN_DIR/Settings.json" ] && [ -f "settings/Settings.json" ]; then
+        cp settings/Settings.json "$BIN_DIR/Settings.json"
     fi
 
     exit 0
@@ -77,7 +77,7 @@ fi
 # Build-Verzeichnis erstellen
 if [ ! -d "$BUILD_DIR" ]; then
     mkdir "$BUILD_DIR"
-    cp Settings.json "$BUILD_DIR/Settings.json"
+    cp settings/Settings.json "$BUILD_DIR/Settings.json"
 fi
 
 cd "$BUILD_DIR"

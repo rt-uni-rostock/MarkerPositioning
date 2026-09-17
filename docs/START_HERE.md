@@ -54,7 +54,7 @@ Dieses Script behebt automatisch:
 
 ### 📚 Dokumentation (3 neue Dateien)
 
-**1. `INSTALLATION_COMPLETE.md`** ← START HIER! 🌟
+**1. `docs/INSTALLATION_COMPLETE.md`** ← START HIER! 🌟
 - Kompletter Überblick über alle Änderungen
 - Schnelle Checklisten
 - Performance-Erwartungen
@@ -70,7 +70,7 @@ Dieses Script behebt automatisch:
 - Jede Abhängigkeit einzeln erklärt
 - **Kapitel 7: Troubleshooting** = Dein Freund bei Problemen
 
-**4. `LINUX_IMPLEMENTATION_CHECKLIST.md`**
+**4. `docs/LINUX_IMPLEMENTATION_CHECKLIST.md`**
 - Für Entwickler und Maintainer
 - Technische Details aller Code-Änderungen
 - Feature Toggle Architektur
@@ -128,7 +128,7 @@ less docs/linux-setup.md
 ## ⚡ Was du SOFORT überprüfen solltest
 
 1. **Öffne README.md** und überprüfe Installation-Sektion
-2. **Lies INSTALLATION_COMPLETE.md** (10 Minuten, sehr wichtig!)
+2. **Lies docs/INSTALLATION_COMPLETE.md** (10 Minuten, sehr wichtig!)
 3. **Führe aus:** `./tools/diagnose-linux.sh`
 4. **Entscheide:** Automatisch (`install-linux.sh`) oder Manuell (`docs/linux-setup.md`)
 
@@ -204,7 +204,7 @@ grep "ERROR" /tmp/*.log             # Schau Install-Logs
 **Gleich jetzt:**
 ```bash
 cd ~/MarkerPositioning/MarkerPositioning
-cat INSTALLATION_COMPLETE.md         # 10 min lesen
+cat docs/INSTALLATION_COMPLETE.md         # 10 min lesen
 ./tools/diagnose-linux.sh            # 2 min System-Check
 ```
 
@@ -224,11 +224,11 @@ cat INSTALLATION_COMPLETE.md         # 10 min lesen
 
 | Datei | Für Was? |
 |-------|----------|
-| INSTALLATION_COMPLETE.md | Ganzer Überblick |
+| docs/INSTALLATION_COMPLETE.md | Ganzer Überblick |
 | docs/QUICKSTART.md | Schnelle Referenz |
 | docs/linux-setup.md | Schritt-für-Schritt Anleitung |
 | tools/README.md | Script-Dokumentation |
-| LINUX_IMPLEMENTATION_CHECKLIST.md | Technische Details |
+| docs/LINUX_IMPLEMENTATION_CHECKLIST.md | Technische Details |
 
 ---
 

@@ -19,7 +19,7 @@ Alle notwendigen Änderungen zur Lauffähigkeit des Projekts auf Debian 13 und R
 ### ✅ Dokumentation (3 Dateien)
 - `docs/QUICKSTART.md`: 3-Minuten Überblick
 - `docs/linux-setup.md`: Komplette 8-Kapitel Installationsanleitung
-- `LINUX_IMPLEMENTATION_CHECKLIST.md`: Technische Details aller Änderungen
+- `docs/LINUX_IMPLEMENTATION_CHECKLIST.md`: Technische Details aller Änderungen
 
 ### ✅ Automatisierungs-Tools (4 Scripts + 1 Template)
 - `tools/install-linux.sh`: Vollständig automatisiertes Setup
@@ -158,7 +158,7 @@ option(ENABLE_LUCID "Enable LUCID GigE camera support" ON)
   7. **Troubleshooting** (wichtig!)
 
 ### Für Technische Details
-- `LINUX_IMPLEMENTATION_CHECKLIST.md` - Alle Code-Änderungen dokumentiert
+- `docs/LINUX_IMPLEMENTATION_CHECKLIST.md` - Alle Code-Änderungen dokumentiert
 - `tools/README.md` - Jedes Script erklärt
 
 ### Für Projekt-Konfiguration
@@ -320,7 +320,7 @@ echo $LUCID_DEV_ROOT                   # Arena SDK Path
 ### Dokumentation
 - Quick Start: `docs/QUICKSTART.md`
 - Vollständig: `docs/linux-setup.md`
-- Details: `LINUX_IMPLEMENTATION_CHECKLIST.md`
+- Details: `docs/LINUX_IMPLEMENTATION_CHECKLIST.md`
 - Tool-Übersicht: `tools/README.md`
 
 ---
