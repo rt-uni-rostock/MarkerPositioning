@@ -30,11 +30,10 @@ void Logger::init()
     // -----------------------------------------
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
-#ifdef NDEBUG
-    console_sink->set_level(spdlog::level::warn);   // Release
-#else
-    console_sink->set_level(spdlog::level::debug);  // Debug
-#endif
+    // Console verbosity is intentionally independent of the CMAKE_BUILD_TYPE
+    // (Debug/Release, i.e. NDEBUG) so behavior is consistent across platforms
+    // and build presets (e.g. Windows Debug vs. Linux Release presets).
+    console_sink->set_level(spdlog::level::info);
 
     console_sink->set_pattern("[%H:%M:%S] [%^%l%$] %v");
 
