@@ -29,7 +29,10 @@ bool RTSPStream::open()
 {
 	LOG_TRACE("Opening RTSP stream...");
 
-	cap.open(config_.cameraSettings->url); //, cv::CAP_FFMPEG
+	// Force the FFmpeg backend: without this hint, OpenCV can fall back to
+	// GStreamer's generic uridecodebin, which may report a successful open()
+	// for HTTP MJPEG streams but then never actually deliver frames.
+	cap.open(config_.cameraSettings->url, cv::CAP_FFMPEG);
 
 	if (!cap.isOpened())
 	{
