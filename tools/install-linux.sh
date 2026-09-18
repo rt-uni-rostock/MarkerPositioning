@@ -152,11 +152,11 @@ echo ""
 # Schritt 5: MarkerPositioning Repository
 step "MarkerPositioning vorbereiten..."
 
-if [ ! -d "MarkerPositioning/.git" ]; then
+if [ ! -d ".git" ] || [ ! -f "CMakeLists.txt" ]; then
     error "Befinde mich nicht im Repository-Verzeichnis"
     echo "Bitte führe dieses Script aus der Projekt-Root aus:"
     echo "  cd ~/MarkerPositioning/MarkerPositioning"
-    echo "  ../tools/install-linux.sh"
+    echo "  tools/install-linux.sh"
     exit 1
 fi
 
