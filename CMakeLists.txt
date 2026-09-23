@@ -201,6 +201,7 @@ if(ENABLE_LUCID)
 
     target_sources(ImageSource PRIVATE
         IO/ImageSource/LiveImageSource/LUCIDStream/LUCIDStream.cpp
+        IO/ImageSource/LiveImageSource/LUCIDStream/LUCIDSystemManager.cpp
     )
 
     # Compile definition used by ImageSourceFactory.cpp to conditionally

@@ -63,11 +63,28 @@ bool LiveSupervisorMode::start() {
 	
 	LOG_TRACE("Starting all ImageSources for LiveSupervisorMode...");
 
-	// start all image sources
+	// Phase 1: open/create all image sources first (e.g. for LUCID cameras
+	// this only establishes each device's control channel). Streaming is
+	// deliberately not started yet to avoid opening one camera's GVCP control
+	// channel while another is already flooding the network with GVSP image
+	// data (see IVideoStream::startStreaming()).
 	for (const auto& imgSource : imgSources_) {
 		if (!imgSource->start()) {
 			LOG_ERROR("Failed to start an ImageSource for LiveSupervisorMode");
 			// stop all previously started sources
+			for (const auto& startedSource : imgSources_) {
+				startedSource->stop();
+			}
+			return false;
+		}
+	}
+
+	// Phase 2: now that all image sources are opened, begin actual capture on
+	// all of them.
+	LOG_TRACE("Beginning capture on all ImageSources for LiveSupervisorMode...");
+	for (const auto& imgSource : imgSources_) {
+		if (!imgSource->beginCapture()) {
+			LOG_ERROR("Failed to begin capture for an ImageSource for LiveSupervisorMode");
 			for (const auto& startedSource : imgSources_) {
 				startedSource->stop();
 			}

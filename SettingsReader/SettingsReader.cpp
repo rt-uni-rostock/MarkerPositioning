@@ -52,6 +52,7 @@ void to_json(json& j, const CameraSettings& c)
 		{"id", c.id},
 		{"streamType", static_cast<int>(c.streamType)},
 		{"name", c.name},
+		{"serialNumber", c.serialNumber},
 		{"url", c.url},
 		{"pipeline", c .pipeline},
 		{"fx", c.fx},
@@ -77,6 +78,7 @@ void from_json(const json& j, CameraSettings& c)
 	c.id = j.value("id", c.id);
 	c.streamType = static_cast<StreamType>(j.value("streamType", static_cast<int>(c.streamType)));
 	c.name = j.value("name", c.name);
+	c.serialNumber = j.value("serialNumber", c.serialNumber);
 	c.url = j.value("url", c.url);
 	c.pipeline = j.value("pipeline", c.pipeline);
 	c.fx = j.value("fx", c.fx);

@@ -33,6 +33,18 @@ bool LiveImagePassthroughSupervisorMode::start() {
 		}
 	}
 
+	// Phase 2: begin capture on all sources only after every one of them has
+	// been opened (see LiveSupervisorMode::start() for why this matters for
+	// LUCID GigE cameras).
+	for (const auto& imgSource : imgSources_) {
+		if (!imgSource->beginCapture()) {
+			for (const auto& startedSource : imgSources_) {
+				startedSource->stop();
+			}
+			return false;
+		}
+	}
+
 	const double interval = std::round(1000.0 / settings_.frameRate);
 	intervalMs_ = std::chrono::milliseconds(static_cast<int>(interval));
 
@@ -77,6 +89,16 @@ void LiveImagePassthroughSupervisorMode::supervisorLoop() {
 void LiveImagePassthroughSupervisorMode::handleCycle() {
 	for (size_t idx = 0; idx < imgSources_.size() && idx < cameraIds_.size(); ++idx) {
 		try {
+			// Only publish/log a frame if the image source actually captured
+			// a genuinely new one since the last cycle. Otherwise (e.g.
+			// camera temporarily disconnected, or capture is simply slower
+			// than this loop's cycle rate) skip this camera for this cycle
+			// instead of repeatedly re-sending/re-logging the same stale
+			// frame.
+			if (!imgSources_[idx]->hasNewFrame()) {
+				continue;
+			}
+
 			auto frame = imgSources_[idx]->getLatestFrame();
 			const auto receiveTimestamp = std::chrono::system_clock::now();
 			imagePublisher_.sendFrame(cameraIds_[idx], frame, receiveTimestamp);

@@ -13,11 +13,16 @@ public:
 
 	bool open() override;
 	bool close() override;
+	bool startStreaming() override;
 
 	ImageFrame getFrame() override;
 private:
 	uint64_t frameCounter_ = 0;
 
+	// Not owned by this instance: obtained from/released via
+	// LUCIDSystemManager, which is the single process-wide holder of the
+	// one Arena system the SDK allows (see LUCIDSystemManager.h).
 	Arena::ISystem* system_ = nullptr;
 	Arena::IDevice* device_ = nullptr;
+	bool systemAcquired_ = false;
 };

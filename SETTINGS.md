@@ -295,6 +295,30 @@ Beschreibender Name der Kamera (für Logs und UI).
 
 ---
 
+#### `serialNumber` (String, erforderlich bei mehreren LUCID-Kameras)
+Seriennummer der physischen LUCID-Kamera (nur relevant für `streamType=1`).
+
+- Wird beim Start jeder LUCID-Kamera verwendet, um das passende `Arena::DeviceInfo`
+  aus der Liste aller erkannten GigE-Geräte auszuwählen.
+- **Ist genau eine LUCID-Kamera erkannt und `serialNumber` leer:** die erkannte
+  Kamera wird automatisch verwendet (Rückwärtskompatibilität), es wird jedoch
+  eine Warnung geloggt.
+- **Sind mehrere LUCID-Kameras aktiv konfiguriert:** `serialNumber` ist für
+  jede davon **Pflicht** und muss eindeutig sein. Fehlt sie oder ist sie
+  doppelt vergeben, bricht die Anwendung beim Start mit einer klaren
+  Fehlermeldung ab, statt dass zwei Kamera-Threads sich um dasselbe Gerät
+  streiten.
+- Die tatsächlich erkannten Seriennummern werden beim Start jeder LUCID-Kamera
+  geloggt (`Detected LUCID camera: serial=..., model=..., ip=...`), sodass sie
+  einfach in die Konfiguration übernommen werden können.
+
+**Beispiel:**
+```json
+"serialNumber": "223900123"
+```
+
+---
+
 #### `url` (String, optional)
 URL zum Video-Stream (nur für `streamType` 2, 3).
 
@@ -445,6 +469,31 @@ Bestimmt, ob die Kamera aktiv genutzt wird.
   }
 }
 ```
+
+### Szenario 4: Mehrere LUCID-Kameras parallel
+```json
+{
+  "cameras": [
+    {
+      "id": 1,
+      "streamType": 1,
+      "name": "LUCID Kamera links",
+      "serialNumber": "223900123",
+      "active": true
+    },
+    {
+      "id": 2,
+      "streamType": 1,
+      "name": "LUCID Kamera rechts",
+      "serialNumber": "223900456",
+      "active": true
+    }
+  ]
+}
+```
+Jede LUCID-Kamera läuft in ihrem eigenen Capture-Thread; `serialNumber` sorgt
+dafür, dass jede Konfiguration an das richtige physische Gerät gebunden wird.
+Die verfügbaren Seriennummern werden beim Start im Log ausgegeben.
 
 ---
 

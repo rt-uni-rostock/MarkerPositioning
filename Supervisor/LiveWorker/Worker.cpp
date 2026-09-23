@@ -57,9 +57,21 @@ void Worker::start(uint64_t cycleId,
 		onError = std::move(onError)]() mutable {
 		try {
 
-			// live image acquisition
-			LOG_TRACE("Worker cycle {}: acquiring latest frame from image source...", cycleId);
-			ImageFrame latestFrame = source_.getLatestFrame();
+		// Only acquire and process a frame if the image source actually
+		// captured a genuinely new one since the last poll. Otherwise
+		// (e.g. camera temporarily disconnected, or simply no new frame
+		// captured yet since the last cycle) skip this cycle entirely:
+		// no logging, no detection pipeline run, no sink update for a
+		// stale/repeated frame.
+		if (!source_.hasNewFrame()) {
+			LOG_TRACE("Worker cycle {}: no new frame available from image source, skipping cycle.", cycleId);
+			state_ = WorkerState::Idle;
+			return;
+		}
+
+		// live image acquisition
+		LOG_TRACE("Worker cycle {}: acquiring latest frame from image source...", cycleId);
+		ImageFrame latestFrame = source_.getLatestFrame();
 
 			// TODO: validation check, error handling
 

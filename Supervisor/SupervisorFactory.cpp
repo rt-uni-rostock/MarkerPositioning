@@ -1,6 +1,7 @@
 #include "SupervisorFactory.h"
 
 #include <stdexcept>
+#include <unordered_map>
 
 #include "ISupervisorMode.h"
 #include "LiveSupervisorMode.h"
@@ -13,6 +14,7 @@
 #include "SinkConfig.h"
 #include "ImageUdpPublisher.h"
 #include "Logger.h"
+#include "StreamTypeEnum.h"
 
 namespace {
 DetectionPipelineConfig buildPipelineConfig(const GeneralSettings& settings, const CameraSettings& camera) {
@@ -170,5 +172,35 @@ std::vector<const CameraSettings*> SupervisorFactory::collectActiveCameras() con
 	}
 
 	LOG_TRACE("SupervisorFactory collected {} active cameras.", activeCameras.size());
+
+	// validate LUCID camera identification: each active LUCID camera must have
+	// a unique, non-empty serialNumber whenever more than one LUCID camera is
+	// configured, otherwise multiple LUCIDStream instances could silently
+	// bind to the same physical device.
+	std::vector<const CameraSettings*> activeLucidCameras;
+	for (const auto* cam : activeCameras) {
+		if (cam->streamType == StreamType::LUCID) {
+			activeLucidCameras.push_back(cam);
+		}
+	}
+
+	if (activeLucidCameras.size() > 1) {
+		std::unordered_map<std::string, int> serialCounts;
+		for (const auto* cam : activeLucidCameras) {
+			if (cam->serialNumber.empty()) {
+				LOG_ERROR("Camera id {} ('{}') uses streamType=LUCID but has no serialNumber configured, "
+					"which is required when multiple LUCID cameras are active.", cam->id, cam->name);
+				throw std::runtime_error("Missing serialNumber for a LUCID camera while multiple LUCID cameras are configured.");
+			}
+			serialCounts[cam->serialNumber]++;
+		}
+		for (const auto& [serial, count] : serialCounts) {
+			if (count > 1) {
+				LOG_ERROR("serialNumber '{}' is used by {} active LUCID camera entries; each LUCID camera requires a unique serialNumber.", serial, count);
+				throw std::runtime_error("Duplicate serialNumber configured for multiple LUCID cameras.");
+			}
+		}
+	}
+
 	return activeCameras;
 }
